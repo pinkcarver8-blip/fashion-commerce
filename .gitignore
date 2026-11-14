@@ -1,0 +1,36 @@
+# 비밀값 (작업진행.md A5-10). 템플릿 .env.example만 저장소에 둔다
+.env
+.env.*
+!.env.example
+*.local
+application-local.yml
+*.pem
+*.key
+*.p12
+
+# Claude Code 개인 설정 (공용 설정은 .claude/settings.json)
+.claude/settings.local.json
+
+# 저장소에 올리지 않는 로컬 문서 (작업진행.md D1 R0-01)
+prompt.md
+포트폴리오_제안.md
+기획근거/0_의뢰원문.md
+기획근거/5_외부비평/비평_1차.md
+
+# 의존성·빌드 산출물
+node_modules/
+dist/
+build/
+out/
+.gradle/
+coverage/
+playwright-report/
+test-results/
+.vite/
+
+# IDE·OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
