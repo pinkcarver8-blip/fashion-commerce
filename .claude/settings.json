@@ -13,7 +13,10 @@
       "Read(~/.aws/**)",
       "Bash(git push *--force*)",
       "Bash(git push -f*)",
-      "Bash(git push * -f)"
+      "Bash(git push * -f)",
+      "Bash(git commit*--no-verify*)",
+      "Bash(git commit -n*)",
+      "Bash(git push*--no-verify*)"
     ],
     "ask": [
       "Bash(git push*)",

@@ -1,0 +1,62 @@
+name: 작업
+description: 작업 ID 하나에 이슈 하나 (작업진행.md A3-1, A3-2의 1)
+title: "[R?-??] "
+body:
+  - type: input
+    id: task-id
+    attributes:
+      label: 작업 ID
+      description: 작업진행.md D의 ID. 이슈 제목, 브랜치 이름, PR 제목, 테스트 이름에 그대로 쓴다
+      placeholder: R1-06
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 영역
+      description: 테스트 시점과 머지 조건이 다르다 (A3-3, A4)
+      options:
+        - "[일반]"
+        - "[엄격]"
+        - "[정찰] 머지하지 않음 (A3-5)"
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: 목적
+      description: 이 작업이 끝나면 무엇이 가능해지는지 한두 줄
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 수용 기준
+      description: 끝났다고 판단하는 조건. 체크 목록으로 쓴다
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: input
+    id: refs
+    attributes:
+      label: 관련 E-ID·불변식
+      description: 돌발 상황 ID(작업진행.md E1)와 불변식 번호(B8)
+      placeholder: "E01, E45 / I1, I2"
+  - type: textarea
+    id: read
+    attributes:
+      label: 읽을 절
+      description: AI에게 줄 문서 범위. [엄격]이면 A5의 해당 절과 B의 관련 절이 필수다. ADR도 여기에 적은 것만 읽는다
+      placeholder: |
+        작업진행.md D2 R1-06, B4, A5-2, A3
+        ADR-005
+    validations:
+      required: true
+  - type: textarea
+    id: scenarios
+    attributes:
+      label: 테스트 시나리오
+      description: "[엄격]은 필수다(사람이 쓰거나 승인한다). [일반]은 체크포인트에서 쓸 시나리오를 미리 적는다. 나중에 쓰는 테스트가 현재 버그를 정답으로 굳히지 않게 하기 위해서다 (A3-4)"
+      placeholder: |
+        - 재고 1개 SKU에 동시 주문 2건 → 1건만 성공, 원장 1줄, I1·I2 유지
