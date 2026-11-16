@@ -1,9 +1,12 @@
 ---
 paths:
+  - "backend/**/*Controller*.java"
+  - "backend/**/application*.yml"
+  - "backend/**/*Security*"
+  - "backend/**/*Auth*"
+  - "backend/**/*Cors*"
   - "backend/**/member/**"
   - "backend/**/admin/**"
-  - "backend/**/security/**"
-  - "backend/**/auth/**"
   - "frontend/admin/**"
 ---
 
