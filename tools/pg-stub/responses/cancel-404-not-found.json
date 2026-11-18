@@ -1,0 +1,8 @@
+{
+  "_source": "R0-03 toss test API, 2026-11-18, sanitized",
+  "status": 404,
+  "body": {
+    "code": "NOT_FOUND_PAYMENT",
+    "message": "존재하지 않는 결제 정보 입니다."
+  }
+}

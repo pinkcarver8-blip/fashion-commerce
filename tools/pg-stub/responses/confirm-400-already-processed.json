@@ -1,0 +1,8 @@
+{
+  "_source": "R0-03 toss test API, 2026-11-18, sanitized",
+  "status": 400,
+  "body": {
+    "code": "ALREADY_PROCESSED_PAYMENT",
+    "message": "이미 처리된 결제 입니다."
+  }
+}

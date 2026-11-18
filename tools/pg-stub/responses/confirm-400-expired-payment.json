@@ -1,0 +1,8 @@
+{
+  "_source": "R0-03 toss test API, 2026-11-18, sanitized",
+  "status": 400,
+  "body": {
+    "code": "EXPIRED_PAYMENT",
+    "message": "결제가 만료되었습니다. 다시 시도해주세요."
+  }
+}

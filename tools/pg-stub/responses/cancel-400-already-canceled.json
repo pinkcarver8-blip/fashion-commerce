@@ -1,0 +1,8 @@
+{
+  "_source": "R0-03 toss test API, 2026-11-18, sanitized",
+  "status": 400,
+  "body": {
+    "code": "ALREADY_CANCELED_PAYMENT",
+    "message": "이미 취소된 결제 입니다."
+  }
+}

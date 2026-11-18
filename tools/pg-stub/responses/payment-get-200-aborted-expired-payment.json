@@ -1,0 +1,49 @@
+{
+  "_source": "R0-03 toss test API, 2026-11-18, sanitized",
+  "status": 200,
+  "body": {
+    "mId": "tgen_0000",
+    "lastTransactionKey": "FAKE0000000000000000000000000002",
+    "paymentKey": "tgen_261118FAKE000000003",
+    "orderId": "r003-D-late-confirm",
+    "orderName": "울 니트 머플러",
+    "taxExemptionAmount": 0,
+    "status": "ABORTED",
+    "requestedAt": "2026-11-18T13:45:52+09:00",
+    "approvedAt": null,
+    "useEscrow": null,
+    "escrowKey": null,
+    "cultureExpense": false,
+    "card": null,
+    "virtualAccount": null,
+    "transfer": null,
+    "mobilePhone": null,
+    "giftCertificate": null,
+    "cashReceipt": null,
+    "cashReceipts": null,
+    "discount": null,
+    "cancels": null,
+    "secret": "ps_FAKE000000000000000000000004",
+    "type": "NORMAL",
+    "easyPay": null,
+    "country": "KR",
+    "failure": {
+      "code": "EXPIRED_PAYMENT",
+      "message": "결제가 만료되었습니다. 다시 시도해주세요."
+    },
+    "isPartialCancelable": true,
+    "receipt": null,
+    "checkout": {
+      "url": "https://api.tosspayments.com/v1/payments/tgen_261118FAKE000000003/checkout"
+    },
+    "currency": "KRW",
+    "totalAmount": 25000,
+    "balanceAmount": 25000,
+    "suppliedAmount": 22727,
+    "vat": 2273,
+    "taxFreeAmount": 0,
+    "method": null,
+    "version": "2022-11-16",
+    "metadata": null
+  }
+}
