@@ -25,6 +25,8 @@ public class Recorder {
 	private static final Logger log = LoggerFactory.getLogger(Recorder.class);
 	private static final DateTimeFormatter KST = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
 		.withZone(ZoneId.of("Asia/Seoul"));
+	private static final DateTimeFormatter FILE_TS = DateTimeFormatter.ofPattern("MMdd-HHmmss")
+		.withZone(ZoneId.of("Asia/Seoul"));
 	private static final Path OUT = Path.of("out");
 
 	private final AtomicInteger seq = new AtomicInteger();
@@ -40,7 +42,8 @@ public class Recorder {
 	/** 요청 정보와 응답 원문을 JSON 한 파일로 남기고 파일 이름을 돌려준다. */
 	public String call(String label, Map<String, String> request, int status, long elapsedMs,
 			Map<String, String> responseHeaders, String body) {
-		String name = String.format("%03d-%s-%s.json", seq.incrementAndGet(), label, status < 0 ? "ERR" : status);
+		String name = String.format("%s-%03d-%s-%s.json", FILE_TS.format(Instant.now()), seq.incrementAndGet() % 1000, label,
+				status < 0 ? "ERR" : status);
 		StringBuilder sb = new StringBuilder("{\n");
 		sb.append("  \"recordedAt\": ").append(q(Instant.now().toString())).append(",\n");
 		sb.append("  \"label\": ").append(q(label)).append(",\n");
@@ -54,7 +57,7 @@ public class Recorder {
 	}
 
 	public String webhook(Map<String, String> headers, String body) {
-		String name = String.format("%03d-webhook.json", seq.incrementAndGet());
+		String name = String.format("%s-%03d-webhook.json", FILE_TS.format(Instant.now()), seq.incrementAndGet() % 1000);
 		String json = "{\n  \"receivedAt\": " + q(Instant.now().toString()) + ",\n  \"headers\": " + obj(headers)
 				+ ",\n  \"body\": " + (isJson(body) ? body.strip() : q(body)) + "\n}\n";
 		write(OUT.resolve("webhooks").resolve(name), json);

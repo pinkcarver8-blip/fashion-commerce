@@ -1,5 +1,6 @@
 package io.github.pinkcarver8blip.tossprobe;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -55,7 +56,8 @@ public class TossClient {
 
 	public Result transactions(String startDate, String endDate) {
 		return send("transactions", HttpMethod.GET,
-				"/v1/transactions?startDate=" + enc(startDate) + "&endDate=" + enc(endDate), null, null, null);
+				"/v1/transactions?startDate=" + enc(startDate) + "&endDate=" + enc(endDate), null, null,
+				60000); // 문서: 거래 조회는 최대 60초
 	}
 
 	private Result send(String label, HttpMethod method, String path, String body, String idempotencyKey,
@@ -75,7 +77,8 @@ public class TossClient {
 		String basic = Base64.getEncoder().encodeToString((toss.secretKey() + ":").getBytes(StandardCharsets.UTF_8));
 		long start = System.nanoTime();
 		try {
-			var spec = client.method(method).uri(BASE + path).header(HttpHeaders.AUTHORIZATION, "Basic " + basic);
+			// 이미 인코딩한 경로라 URI로 넘긴다(문자열로 넘기면 %가 다시 인코딩된다)
+			var spec = client.method(method).uri(URI.create(BASE + path)).header(HttpHeaders.AUTHORIZATION, "Basic " + basic);
 			if (idempotencyKey != null) {
 				spec = spec.header("Idempotency-Key", idempotencyKey);
 			}
