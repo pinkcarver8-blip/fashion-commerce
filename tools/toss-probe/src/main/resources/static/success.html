@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R0-03 토스 확인: 인증 완료</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; }
+  pre { background: #f4f4f4; padding: 12px; white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+<h1>결제 인증 완료 (아직 승인 전)</h1>
+<p>승인은 검증 도구가 정해진 시점에 호출한다. 이 화면은 닫아도 된다.</p>
+<pre id="result"></pre>
+<p><a href="/">새 주문</a></p>
+<script>
+  (async () => {
+    const q = new URLSearchParams(location.search);
+    const res = await fetch('/api/auth-result', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: q.get('orderId'), paymentKey: q.get('paymentKey'),
+        amount: Number(q.get('amount')), paymentType: q.get('paymentType')
+      })
+    });
+    const body = await res.json();
+    // paymentKey는 화면에 다 보여주지 않는다
+    document.getElementById('result').textContent = JSON.stringify({
+      orderId: q.get('orderId'), amount: q.get('amount'), paymentType: q.get('paymentType'),
+      paymentKey: (q.get('paymentKey') || '').slice(0, 5) + '…', 서버기록: res.ok, 금액일치: body.amountMatches
+    }, null, 2);
+  })();
+</script>
+</body>
+</html>
