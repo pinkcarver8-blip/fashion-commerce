@@ -1,0 +1,52 @@
+{
+  "_source": "R0-03 toss test API, 2026-11-18, sanitized",
+  "status": 200,
+  "body": {
+    "mId": "tgen_0000",
+    "lastTransactionKey": "txrd_FAKE00000000000000000000012",
+    "paymentKey": "tgen_261118FAKE000000010",
+    "orderId": "r003-A_confirm-dup=01",
+    "orderName": "옥스포드 셔츠",
+    "taxExemptionAmount": 0,
+    "status": "DONE",
+    "requestedAt": "2026-11-18T13:46:35+09:00",
+    "approvedAt": "2026-11-18T13:46:53+09:00",
+    "useEscrow": false,
+    "escrowKey": null,
+    "cultureExpense": false,
+    "card": null,
+    "virtualAccount": null,
+    "transfer": null,
+    "mobilePhone": null,
+    "giftCertificate": null,
+    "cashReceipt": null,
+    "cashReceipts": null,
+    "discount": null,
+    "cancels": null,
+    "secret": "ps_FAKE000000000000000000000011",
+    "type": "NORMAL",
+    "easyPay": {
+      "provider": "카카오페이",
+      "amount": 39000,
+      "discountAmount": 0
+    },
+    "country": "KR",
+    "failure": null,
+    "isPartialCancelable": true,
+    "receipt": {
+      "url": "https://dashboard-sandbox.tosspayments.com/receipt/redirection?transactionId=tgen_261118FAKE000000010&ref=00"
+    },
+    "checkout": {
+      "url": "https://api.tosspayments.com/v1/payments/tgen_261118FAKE000000010/checkout"
+    },
+    "currency": "KRW",
+    "totalAmount": 39000,
+    "balanceAmount": 39000,
+    "suppliedAmount": 35455,
+    "vat": 3545,
+    "taxFreeAmount": 0,
+    "method": "간편결제",
+    "version": "2022-11-16",
+    "metadata": null
+  }
+}

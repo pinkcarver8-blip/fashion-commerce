@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R0-03 토스 확인: 결제 실패</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; }
+  pre { background: #f4f4f4; padding: 12px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>결제 실패 페이지</h1>
+<pre id="params"></pre>
+<p><a href="/">새 주문</a></p>
+<script>
+  const q = new URLSearchParams(location.search);
+  document.getElementById('params').textContent = JSON.stringify(Object.fromEntries(q), null, 2);
+  if (q.get('orderId')) {
+    fetch('/api/page-events', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: q.get('orderId'), type: 'FAIL_REDIRECT',
+        detail: `${q.get('code')}: ${q.get('message')}` })
+    });
+  }
+</script>
+</body>
+</html>

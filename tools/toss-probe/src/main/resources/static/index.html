@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R0-03 토스 확인: 주문</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; }
+  label { display: block; margin: 12px 0 4px; }
+  input, select, button { font-size: 16px; padding: 6px; }
+  .note { background: #fff3cd; padding: 8px 12px; border-radius: 6px; }
+  small { color: #555; }
+</style>
+</head>
+<body>
+<p class="note">포트폴리오 검증용 데모. 실제 판매·결제 없음(토스 테스트 키).</p>
+<h1>주문 만들기</h1>
+<label>상품 <select id="product"></select></label>
+<label>수량 <input id="qty" type="number" value="1" min="1" max="10"></label>
+<label>결제 화면 <select id="channel">
+  <option value="widget">결제위젯(문서 공용 상점)</option>
+  <option value="window">결제창, 카드(내 테스트 상점, 웹훅 확인용)</option>
+</select></label>
+<label>주문번호(orderId) <small>비우면 무작위 32자. 규칙 확인 때만 직접 입력</small></label>
+<input id="orderId" style="width:100%" placeholder="비워 두기">
+<p><button id="order">주문하고 결제로</button></p>
+<p id="error" style="color:#b00"></p>
+<script>
+  fetch('/api/products').then(r => r.json()).then(list => {
+    const sel = document.getElementById('product');
+    for (const p of list) {
+      const o = document.createElement('option');
+      o.value = p.id; o.textContent = `${p.name} ${p.price.toLocaleString()}원`;
+      sel.appendChild(o);
+    }
+  });
+  document.getElementById('order').onclick = async () => {
+    const res = await fetch('/api/orders', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productId: Number(document.getElementById('product').value),
+        quantity: Number(document.getElementById('qty').value),
+        orderId: document.getElementById('orderId').value.trim() || null,
+        channel: document.getElementById('channel').value
+      })
+    });
+    const body = await res.json();
+    if (!res.ok) { document.getElementById('error').textContent = body.code; return; }
+    const page = body.channel === 'window' ? '/window.html' : '/checkout.html';
+    location.href = page + '?orderId=' + encodeURIComponent(body.orderId);
+  };
+</script>
+</body>
+</html>

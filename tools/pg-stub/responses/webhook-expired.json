@@ -1,0 +1,58 @@
+{
+  "_source": "R0-03 toss webhook request (received), 2026-11-20, sanitized",
+  "headers": {
+    "Content-Type": "application/json",
+    "User-Agent": "tosspayments",
+    "Tosspayments-Webhook-Signature": "v1:FAKE0000000000000000000000000000000000000027",
+    "Tosspayments-Webhook-Transmission-Id": "whtrans_FAKE00000000000000000000028",
+    "Tosspayments-Webhook-Transmission-Retried-Count": "0",
+    "Tosspayments-Webhook-Transmission-Time": "2026-11-20T10:34:33+09:00"
+  },
+  "body": {
+    "createdAt": "2026-11-20T10:34:33.706159566",
+    "eventType": "PAYMENT_STATUS_CHANGED",
+    "data": {
+      "mId": "FAKE0000000016",
+      "paymentKey": "tviva2FAKE00000000000026",
+      "orderId": "r003-W-window-card",
+      "orderName": "",
+      "type": "NORMAL",
+      "totalAmount": 39000,
+      "balanceAmount": 39000,
+      "taxFreeAmount": 0,
+      "taxExemptionAmount": 0,
+      "suppliedAmount": 35455,
+      "vat": 3545,
+      "currency": "KRW",
+      "country": "KR",
+      "isPartialCancelable": true,
+      "checkout": {
+        "url": "https://api.tosspayments.com/v1/payments/tviva2FAKE00000000000026/checkout"
+      },
+      "requestedAt": "2026-11-20T10:01:51+09:00",
+      "cultureExpense": false,
+      "version": "2024-06-01",
+      "status": "EXPIRED",
+      "failure": {
+        "code": "EXPIRED_PAYMENT",
+        "message": "결제가 만료되었습니다. 다시 시도해주세요."
+      },
+      "approvedAt": null,
+      "cancels": null,
+      "card": null,
+      "cashReceipt": null,
+      "discount": null,
+      "easyPay": null,
+      "giftCertificate": null,
+      "lastTransactionKey": null,
+      "method": null,
+      "mobilePhone": null,
+      "receipt": null,
+      "secret": null,
+      "transactionKey": null,
+      "transfer": null,
+      "useEscrow": null,
+      "virtualAccount": null
+    }
+  }
+}

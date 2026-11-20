@@ -1,0 +1,8 @@
+{
+  "_source": "R0-03 toss test API, 2026-11-18, sanitized",
+  "status": 409,
+  "body": {
+    "code": "IDEMPOTENT_REQUEST_PROCESSING",
+    "message": "이전 멱등 요청이 처리중입니다."
+  }
+}
