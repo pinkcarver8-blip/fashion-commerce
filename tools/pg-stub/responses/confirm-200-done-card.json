@@ -1,0 +1,61 @@
+{
+  "_source": "R0-03 toss test API, 2026-11-20, sanitized",
+  "status": 200,
+  "body": {
+    "mId": "FAKE0000000016",
+    "lastTransactionKey": "txrd_FAKE00000000000000000000017",
+    "paymentKey": "tviva2FAKE00000000000018",
+    "orderId": "r003-W2-window-card",
+    "orderName": "옥스포드 셔츠",
+    "taxExemptionAmount": 0,
+    "status": "DONE",
+    "requestedAt": "2026-11-20T11:52:08+09:00",
+    "approvedAt": "2026-11-20T11:52:54+09:00",
+    "useEscrow": false,
+    "escrowKey": null,
+    "cultureExpense": false,
+    "card": {
+      "issuerCode": "00",
+      "acquirerCode": "00",
+      "number": "00000000****000*",
+      "installmentPlanMonths": 0,
+      "isInterestFree": false,
+      "interestPayer": null,
+      "approveNo": "00000000",
+      "useCardPoint": false,
+      "cardType": "체크",
+      "ownerType": "개인",
+      "acquireStatus": "READY",
+      "amount": 39000
+    },
+    "virtualAccount": null,
+    "transfer": null,
+    "mobilePhone": null,
+    "giftCertificate": null,
+    "cashReceipt": null,
+    "cashReceipts": null,
+    "discount": null,
+    "cancels": null,
+    "secret": "ps_FAKE000000000000000000000019",
+    "type": "NORMAL",
+    "easyPay": null,
+    "country": "KR",
+    "failure": null,
+    "isPartialCancelable": true,
+    "receipt": {
+      "url": "https://dashboard-sandbox.tosspayments.com/receipt/redirection?transactionId=FAKE00000000000000000018&ref=00"
+    },
+    "checkout": {
+      "url": "https://api.tosspayments.com/v1/payments/tviva2FAKE00000000000018/checkout"
+    },
+    "currency": "KRW",
+    "totalAmount": 39000,
+    "balanceAmount": 39000,
+    "suppliedAmount": 35455,
+    "vat": 3545,
+    "taxFreeAmount": 0,
+    "method": "카드",
+    "version": "2024-06-01",
+    "metadata": null
+  }
+}
