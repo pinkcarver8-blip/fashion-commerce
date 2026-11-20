@@ -17,6 +17,10 @@
 <h1>주문 만들기</h1>
 <label>상품 <select id="product"></select></label>
 <label>수량 <input id="qty" type="number" value="1" min="1" max="10"></label>
+<label>결제 화면 <select id="channel">
+  <option value="widget">결제위젯(문서 공용 상점)</option>
+  <option value="window">결제창, 카드(내 테스트 상점, 웹훅 확인용)</option>
+</select></label>
 <label>주문번호(orderId) <small>비우면 무작위 32자. 규칙 확인 때만 직접 입력</small></label>
 <input id="orderId" style="width:100%" placeholder="비워 두기">
 <p><button id="order">주문하고 결제로</button></p>
@@ -36,12 +40,14 @@
       body: JSON.stringify({
         productId: Number(document.getElementById('product').value),
         quantity: Number(document.getElementById('qty').value),
-        orderId: document.getElementById('orderId').value.trim() || null
+        orderId: document.getElementById('orderId').value.trim() || null,
+        channel: document.getElementById('channel').value
       })
     });
     const body = await res.json();
     if (!res.ok) { document.getElementById('error').textContent = body.code; return; }
-    location.href = '/checkout.html?orderId=' + encodeURIComponent(body.orderId);
+    const page = body.channel === 'window' ? '/window.html' : '/checkout.html';
+    location.href = page + '?orderId=' + encodeURIComponent(body.orderId);
   };
 </script>
 </body>

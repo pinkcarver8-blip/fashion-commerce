@@ -30,7 +30,7 @@ public class ProbeController {
 	private static final Pattern CODE = Pattern.compile("\"code\"\\s*:\\s*\"([A-Z_0-9]+)\"");
 
 	/** 상태가 바뀔 때까지 주기적으로 조회한다(30분 만료 기산점 확인용). */
-	record Watch(String paymentKey, Duration interval, Instant until, String lastStatus, Instant nextAt) {
+	record Watch(boolean api, String paymentKey, Duration interval, Instant until, String lastStatus, Instant nextAt) {
 	}
 
 	private final TossClient client;
@@ -60,8 +60,8 @@ public class ProbeController {
 
 	@GetMapping("/payments/{orderId}")
 	Map<String, Object> getPayment(@PathVariable String orderId, @RequestParam(required = false) Integer timeoutMs,
-			@RequestParam(required = false) String paymentKey) {
-		return summary(client.getPayment(keyOf(orderId, paymentKey), timeoutMs));
+			@RequestParam(required = false) String paymentKey, @RequestParam(required = false) Boolean api) {
+		return summary(client.getPayment(apiOf(orderId, api), keyOf(orderId, paymentKey), timeoutMs));
 	}
 
 	/**
@@ -75,21 +75,24 @@ public class ProbeController {
 			return Map.of("error", "주문이 없거나 아직 인증 결과(paymentKey)가 없다");
 		}
 		String key = idem == null ? "confirm-" + orderId : "none".equals(idem) ? null : idem;
-		return summary(
-				client.confirm(order.paymentKey, orderId, amount == null ? order.amount : amount, key, timeoutMs));
+		return summary(client.confirm(order.api, order.paymentKey, orderId, amount == null ? order.amount : amount,
+				key, timeoutMs));
 	}
 
 	@PostMapping("/cancel/{orderId}")
 	Map<String, Object> cancel(@PathVariable String orderId, @RequestParam(required = false) String idem,
 			@RequestParam(defaultValue = "R0-03 확인") String reason, @RequestParam(required = false) Long amount,
-			@RequestParam(required = false) Integer timeoutMs, @RequestParam(required = false) String paymentKey) {
+			@RequestParam(required = false) Integer timeoutMs, @RequestParam(required = false) String paymentKey,
+			@RequestParam(required = false) Boolean api) {
 		String key = idem == null ? "cancel-" + orderId : "none".equals(idem) ? null : idem;
-		return summary(client.cancel(keyOf(orderId, paymentKey), reason, amount, key, timeoutMs));
+		return summary(
+				client.cancel(apiOf(orderId, api), keyOf(orderId, paymentKey), reason, amount, key, timeoutMs));
 	}
 
 	@GetMapping("/transactions")
-	Map<String, Object> transactions(@RequestParam String start, @RequestParam String end) {
-		return summary(client.transactions(start, end));
+	Map<String, Object> transactions(@RequestParam String start, @RequestParam String end,
+			@RequestParam(defaultValue = "false") boolean api) {
+		return summary(client.transactions(api, start, end));
 	}
 
 	@PostMapping("/watch/{orderId}")
@@ -97,7 +100,7 @@ public class ProbeController {
 			@RequestParam(defaultValue = "45") int maxMin) {
 		String key = keyOf(orderId, null);
 		Instant now = Instant.now();
-		watches.put(orderId, new Watch(key, Duration.ofSeconds(Math.max(10, intervalSec)),
+		watches.put(orderId, new Watch(apiOf(orderId, null), key, Duration.ofSeconds(Math.max(10, intervalSec)),
 				now.plus(Duration.ofMinutes(maxMin)), null, now));
 		recorder.event("WATCH_START", "orderId=" + orderId + " intervalSec=" + intervalSec + " maxMin=" + maxMin);
 		return Map.of("watching", orderId);
@@ -117,7 +120,7 @@ public class ProbeController {
 			if (now.isBefore(w.nextAt())) {
 				return;
 			}
-			var result = client.getPayment(w.paymentKey(), null);
+			var result = client.getPayment(w.api(), w.paymentKey(), null);
 			String status = match(STATUS, result.body());
 			if (w.lastStatus() == null || !w.lastStatus().equals(status)) {
 				recorder.event("WATCH_STATUS", "orderId=" + orderId + " status=" + status + " http=" + result.status()
@@ -130,9 +133,18 @@ public class ProbeController {
 				recorder.event("WATCH_END", "orderId=" + orderId + " last=" + status);
 			}
 			else {
-				watches.put(orderId, new Watch(w.paymentKey(), w.interval(), w.until(), status, now.plus(w.interval())));
+				watches.put(orderId, new Watch(w.api(), w.paymentKey(), w.interval(), w.until(), status, now.plus(w.interval())));
 			}
 		});
+	}
+
+	/** 주문을 만든 화면(위젯·결제창)에 맞는 키를 쓴다. 주문이 없으면 api 인자를 따른다. */
+	private boolean apiOf(String orderId, Boolean api) {
+		if (api != null) {
+			return api;
+		}
+		var order = shop.orders().get(orderId);
+		return order != null && order.api;
 	}
 
 	private String keyOf(String orderId, String paymentKey) {

@@ -36,33 +36,40 @@ public class TossClient {
 		this.recorder = recorder;
 	}
 
-	public Result getPayment(String paymentKey, Integer timeoutMs) {
-		return send("payment-get", HttpMethod.GET, "/v1/payments/" + enc(paymentKey), null, null, timeoutMs);
+	/** api: true면 API 개별 연동 키(결제창 주문), false면 결제위젯 키로 호출한다. */
+	public Result getPayment(boolean api, String paymentKey, Integer timeoutMs) {
+		return send(api, "payment-get", HttpMethod.GET, "/v1/payments/" + enc(paymentKey), null, null, timeoutMs);
 	}
 
-	public Result confirm(String paymentKey, String orderId, long amount, String idempotencyKey, Integer timeoutMs) {
+	public Result confirm(boolean api, String paymentKey, String orderId, long amount, String idempotencyKey,
+			Integer timeoutMs) {
 		String body = "{\"paymentKey\":" + Recorder.q(paymentKey) + ",\"orderId\":" + Recorder.q(orderId)
 				+ ",\"amount\":" + amount + "}";
-		return send("confirm", HttpMethod.POST, "/v1/payments/confirm", body, idempotencyKey, timeoutMs);
+		return send(api, "confirm", HttpMethod.POST, "/v1/payments/confirm", body, idempotencyKey, timeoutMs);
 	}
 
-	public Result cancel(String paymentKey, String reason, Long cancelAmount, String idempotencyKey,
+	public Result cancel(boolean api, String paymentKey, String reason, Long cancelAmount, String idempotencyKey,
 			Integer timeoutMs) {
 		String body = "{\"cancelReason\":" + Recorder.q(reason)
 				+ (cancelAmount == null ? "" : ",\"cancelAmount\":" + cancelAmount) + "}";
-		return send("cancel", HttpMethod.POST, "/v1/payments/" + enc(paymentKey) + "/cancel", body, idempotencyKey,
-				timeoutMs);
+		return send(api, "cancel", HttpMethod.POST, "/v1/payments/" + enc(paymentKey) + "/cancel", body,
+				idempotencyKey, timeoutMs);
 	}
 
-	public Result transactions(String startDate, String endDate) {
-		return send("transactions", HttpMethod.GET,
+	public Result transactions(boolean api, String startDate, String endDate) {
+		return send(api, "transactions", HttpMethod.GET,
 				"/v1/transactions?startDate=" + enc(startDate) + "&endDate=" + enc(endDate), null, null,
 				60000); // 문서: 거래 조회는 최대 60초
 	}
 
-	private Result send(String label, HttpMethod method, String path, String body, String idempotencyKey,
-			Integer timeoutMs) {
+	private Result send(boolean api, String label, HttpMethod method, String path, String body,
+			String idempotencyKey, Integer timeoutMs) {
+		if (api && !toss.hasApiKeys()) {
+			String file = recorder.call(label, Map.of("keys", "api"), -1, 0, Map.of(), "API 개별 연동 키 없음");
+			return new Result(-1, "API 개별 연동 키 없음", file, 0);
+		}
 		Map<String, String> req = new LinkedHashMap<>();
+		req.put("keys", api ? "api" : "widget");
 		req.put("method", method.name());
 		req.put("path", path);
 		req.put("idempotencyKey", idempotencyKey);
@@ -74,7 +81,8 @@ public class TossClient {
 		factory.setReadTimeout(Duration.ofMillis(timeoutMs == null ? 15000 : timeoutMs));
 		RestClient client = RestClient.builder().requestFactory(factory).build();
 
-		String basic = Base64.getEncoder().encodeToString((toss.secretKey() + ":").getBytes(StandardCharsets.UTF_8));
+		String secret = api ? toss.apiSecretKey() : toss.secretKey();
+		String basic = Base64.getEncoder().encodeToString((secret + ":").getBytes(StandardCharsets.UTF_8));
 		long start = System.nanoTime();
 		try {
 			// 이미 인코딩한 경로라 URI로 넘긴다(문자열로 넘기면 %가 다시 인코딩된다)

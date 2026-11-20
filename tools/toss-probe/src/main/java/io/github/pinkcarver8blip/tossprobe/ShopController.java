@@ -32,8 +32,11 @@ public class ShopController {
 	record Product(long id, String name, long price) {
 	}
 
-	/** orderId를 비우면 무작위로 만든다. orderId 규칙 확인용으로만 직접 지정한다. */
-	record CreateOrderRequest(long productId, int quantity, String orderId) {
+	/**
+	 * orderId를 비우면 무작위로 만든다. orderId 규칙 확인용으로만 직접 지정한다.
+	 * channel: "window"면 결제창(API 개별 연동 키), 그 밖에는 결제위젯.
+	 */
+	record CreateOrderRequest(long productId, int quantity, String orderId, String channel) {
 	}
 
 	record AuthResult(String orderId, String paymentKey, long amount, String paymentType) {
@@ -46,15 +49,18 @@ public class ShopController {
 		public final String orderId;
 		public final String orderName;
 		public final long amount;
+		/** true면 결제창 주문(API 개별 연동 키로 승인·취소) */
+		public final boolean api;
 		public final Instant createdAt = Instant.now();
 		public volatile String paymentKey;
 		public volatile Long redirectedAmount;
 		public volatile Instant authAt;
 
-		Order(String orderId, String orderName, long amount) {
+		Order(String orderId, String orderName, long amount, boolean api) {
 			this.orderId = orderId;
 			this.orderName = orderName;
 			this.amount = amount;
+			this.api = api;
 		}
 	}
 
@@ -81,7 +87,7 @@ public class ShopController {
 	/** 클라이언트 키는 브라우저에 공개되는 키다. 시크릿 키는 내보내지 않는다. */
 	@GetMapping("/config")
 	Map<String, String> config() {
-		return Map.of("clientKey", toss.clientKey());
+		return Map.of("clientKey", toss.clientKey(), "apiClientKey", toss.hasApiKeys() ? toss.apiClientKey() : "");
 	}
 
 	@PostMapping("/orders")
@@ -95,10 +101,15 @@ public class ShopController {
 		if (!ANY_ORDER_ID.matcher(orderId).matches() || orders.containsKey(orderId)) {
 			return ResponseEntity.badRequest().body(Map.of("code", "INVALID_ORDER_ID"));
 		}
+		boolean api = "window".equals(request.channel());
+		if (api && !toss.hasApiKeys()) {
+			return ResponseEntity.badRequest().body(Map.of("code", "NO_API_KEYS"));
+		}
 		var order = new Order(orderId, p.name() + (request.quantity() > 1 ? " " + request.quantity() + "개" : ""),
-				p.price() * request.quantity());
+				p.price() * request.quantity(), api);
 		orders.put(orderId, order);
-		recorder.event("ORDER_CREATED", "orderId=" + orderId + " amount=" + order.amount + " len=" + orderId.length()
+		recorder.event("ORDER_CREATED", "orderId=" + orderId + " channel=" + (api ? "window" : "widget") + " amount="
+				+ order.amount + " len=" + orderId.length()
 				+ (SAFE_ORDER_ID.matcher(orderId).matches() ? "" : " (규칙 밖 문자 포함)"));
 		return ResponseEntity.ok(view(order));
 	}
@@ -146,6 +157,7 @@ public class ShopController {
 		m.put("orderId", o.orderId);
 		m.put("orderName", o.orderName);
 		m.put("amount", o.amount);
+		m.put("channel", o.api ? "window" : "widget");
 		return m;
 	}
 
