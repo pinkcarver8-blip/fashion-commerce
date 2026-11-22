@@ -1,6 +1,6 @@
 # ADR-007. QueryDSL: OpenFeign 포크를 읽기 조회에만 쓴다
 
-- **상태**: 제안
+- **상태**: 승인
 - **날짜**: 2026-11-22
 - **결정자**: 사용자 / **작성자**: Claude Code(Claude Opus 5.5)
 - **관련**: 작업 ID R0-05-007(이슈 #11), 입력 R0-04(이슈 #7, [`docs/reports/r0-querydsl.md`](../reports/r0-querydsl.md)), 기획서 §9-2 "QueryDSL 주의", 작업진행.md A1·A5-2·A5-8·A5-12
@@ -36,7 +36,7 @@
 - 개인정보에는 영향이 없다(조회 방식만 정한다).
 
 ## 강제
-- **예정(R0-06, ArchUnit)**: QueryDSL(`com.querydsl..`)에 의존하는 클래스는 조회 전용 클래스뿐이다. `JPAUpdateClause`·`JPADeleteClause`·`JPAInsertClause`와 `JPAQueryFactory`의 `update`·`delete`·`insert` 호출은 아무 클래스도 쓰지 않는다. 확인 방법은 이렇다. 조회 전용이 아닌 클래스가 `JPAQueryFactory`를 쓰면 테스트가 실패하고, `JPAUpdateClause`를 쓰면 테스트가 실패한다.
+- **예정(R0-06, ArchUnit)**: QueryDSL(`com.querydsl..`)에 의존하는 클래스는 조회 전용 클래스뿐이다(빌드가 만드는 Q클래스는 뺀다). `JPAUpdateClause`·`JPADeleteClause`·`JPAInsertClause`와 `JPAQueryFactory`의 `update`·`delete`·`insert` 호출은 아무 클래스도 쓰지 않는다. 확인 방법은 이렇다. 조회 전용이 아닌 클래스가 `JPAQueryFactory`를 쓰면 테스트가 실패하고, `JPAUpdateClause`를 쓰면 테스트가 실패한다.
 - **예정(R0-08, CI)**: 빌드에서 Q클래스가 생성되지 않으면 컴파일이 실패한다. 따로 검사를 두지 않는다.
 - **리뷰**: 템플릿 함수에 사용자 입력이 들어가는지, 정렬 허용 목록을 쓰는지는 PR에서 확인한다.
 
