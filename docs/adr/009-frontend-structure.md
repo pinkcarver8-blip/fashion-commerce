@@ -58,7 +58,7 @@
 - 토큰은 메모리에만 두고 localStorage·sessionStorage에 두지 않는다(ADR-008). `VITE_` 변수에 시크릿 키를 넣지 않는다(A5-10).
 
 ## 강제
-- **예정(R0-08, ESLint)**: 패키지 import 금지 규칙, `dangerouslySetInnerHTML` 금지, localStorage에 토큰 저장 금지(`no-restricted-syntax`로 `localStorage.setItem` 사용 시 경고).
+- **예정(R0-08, ESLint)**: 패키지 import 금지 규칙, `dangerouslySetInnerHTML` 금지, 토큰을 브라우저 저장소에 두지 않기(`no-restricted-syntax`로 `localStorage`·`sessionStorage` 사용을 오류로 막는다. 토큰이 아닌 값을 저장할 필요가 생기면 그 파일만 예외로 연다).
 - **예정(R0-08, CI)**: store 빌드 산출물에 `/api/admin` 문자열이 없는지 검사한다.
 - **예정(R1-21)**: 원색 값 직접 사용 금지(토큰만). 기계적 검사(stylelint)를 넣을지는 그때 정한다.
 

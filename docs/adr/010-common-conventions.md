@@ -70,3 +70,9 @@
 - [x] 기획서: 바꿀 것이 없다(공통 규약은 기획서에 없고 E3에 있다)
 - [x] 작업진행.md: A1 패키지명을 확정값으로 고치고 ID 항목에 UUIDv4를 적었다. E4-2의 R0-03 행(orderId 규칙)과 R0-04 행(ADR-007에 반영 완료)을 지웠다. R0-07(pnpm)·R0-08(서명 검증) 행의 "반영할 곳"에서 ADR-010을 뺐다
 - [x] CLAUDE.md 또는 `.claude/rules/`: 바꿀 것이 없다
+
+## 보충 (작업진행.md A7 보충 규칙. 결정은 바꾸지 않고 강제 수단과 근거를 정정한다)
+- **2026-11-24**(근거: R0 재검토 이슈 #39, 독립 검토)
+  - **`@Setter`·`@Data` 금지의 강제 수단 정정**: "강제" 칸의 "엔티티에 `@Setter`·`@Data`를 쓰면 ArchUnit이 실패한다"는 동작하지 않는다. 두 표시는 `@Retention(RetentionPolicy.SOURCE)`라 컴파일된 클래스에 남지 않고, ArchUnit은 컴파일된 클래스를 읽기 때문이다(Lombok 저장소의 `Setter.java`·`Data.java`, 2026-11-24 확인). 대신 `lombok.config`에 `lombok.setter.flagUsage = error`와 `lombok.data.flagUsage = error`를 두어 컴파일을 실패시킨다(Lombok 공식 문서의 설정 키, 2026-11-24 확인). R0-06에서 실제로 컴파일이 실패하는지 시험한다. 돈 필드 타입 검사는 그대로 ArchUnit으로 한다.
+  - **시간대 고정 검사 범위**: "강제" 칸의 테스트는 JVM·JDBC·Jackson 세 곳만 본다. 네 번째인 컨테이너 시간대(`TZ`)는 R0-08 CI의 컨테이너 기동 확인에서 검사한다.
+  - **근거가 없는 문장 두 개**: "pnpm 11의 기본 보호(공개 1일 미만 버전 설치 금지, 설치 스크립트 차단)"와 "Groovy는 Spring Initializr 기본값"은 출처와 확인 날짜를 적지 않았다(미확인). R0-07에서 pnpm 공식 문서와 Initializr로 확인한다(작업진행.md E4-2). 확인 결과가 다르면 이 보충에 적고, 결정에 영향이 있으면 새 ADR로 대체한다.
