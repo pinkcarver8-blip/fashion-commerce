@@ -87,3 +87,12 @@
 - [x] 기획서: 이번에는 고치지 않는다. §4-3·§9의 "ArchUnit 또는 Spring Modulith"는 기획서 v0.3에서 정리한다. 열린 선택지 중 하나를 고른 것이라 E3에 더할 것은 없다
 - [x] 작업진행.md: A1·A4 표·A5-8의 "ArchUnit 또는 Modulith"를 "ArchUnit"으로 고쳤다
 - [x] CLAUDE.md 또는 `.claude/rules/`: `.claude/rules/backend.md`의 "ArchUnit(또는 Modulith)"을 "ArchUnit"으로 고쳤다
+
+## 보충 (작업진행.md A7 보충 규칙. 결정은 바꾸지 않고 표에 행을 더한다)
+- **2026-11-24**(근거: ADR-005, R0 재검토 이슈 #39): 동기 호출 표에 다음 한 줄을 더한다. 순환은 생기지 않는다(`inventory`는 다른 모듈을 부르지 않는다).
+
+| 호출하는 모듈 → 호출받는 모듈 | 용도 | 도입 |
+|---|---|---|
+| `shipping` → `inventory` | 출고(`SHIPPED`) 때 창고 재고(`on_hand`) 차감, 원장 기록 | R1 |
+
+- 같은 날 다른 ADR이 기존 화살표에 용도를 더했다(새 화살표 아님): `payment → order`에 "결제창을 열 때 주문 만료 시각 갱신"(ADR-006a), `claim → payment`에 "고객 취소의 PG 결과 조회·재요청"(ADR-006b).
