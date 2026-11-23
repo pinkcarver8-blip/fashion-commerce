@@ -87,3 +87,16 @@
 - [x] 기획서: 이번에는 고치지 않는다. §4-3·§9의 "ArchUnit 또는 Spring Modulith"는 기획서 v0.3에서 정리한다. 열린 선택지 중 하나를 고른 것이라 E3에 더할 것은 없다
 - [x] 작업진행.md: A1·A4 표·A5-8의 "ArchUnit 또는 Modulith"를 "ArchUnit"으로 고쳤다
 - [x] CLAUDE.md 또는 `.claude/rules/`: `.claude/rules/backend.md`의 "ArchUnit(또는 Modulith)"을 "ArchUnit"으로 고쳤다
+
+## 보충 (작업진행.md A7 보충 규칙. 결정은 바꾸지 않고 표에 행을 더한다)
+- **2026-11-24**(근거: ADR-005, R0 재검토 이슈 #39): 동기 호출 표에 다음 한 줄을 더한다. 순환은 생기지 않는다(`inventory`는 다른 모듈을 부르지 않는다).
+
+| 호출하는 모듈 → 호출받는 모듈 | 용도 | 도입 |
+|---|---|---|
+| `shipping` → `inventory` | 출고(`SHIPPED`) 때 창고 재고(`on_hand`) 차감, 원장 기록 | R1 |
+
+- 같은 날 다른 ADR이 기존 화살표에 용도를 더했다(새 화살표 아님): `payment → order`에 "결제창을 열 때 주문 만료 시각 갱신"(ADR-006a), `claim → payment`에 "고객 취소의 PG 결과 조회·재요청"(ADR-006b).
+- **2026-11-24**(근거: ADR-006b, R0 재검토 독립 검토)
+  - `claim → payment` 행의 "멱등키 `cancel-{cancelRequestId}`"는 ADR-006b의 `pg_cancel` 기록 ID(`cancel-{pg_cancel uid}`)로 읽는다. claim의 취소 요청 기록은 요청 시각·사유를 담고, PG 키와 결과는 payment의 `pg_cancel`이 담는다.
+  - 같은 행의 "(E48)"은 "(E49)"의 잘못이다. E48은 `CONFIRMING` 직후 서버 종료, E49가 취소의 타임아웃·실패다.
+  - 검토한 대안 표의 Spring Modulith 기각 이유 중 "`@Setter` 금지에 ArchUnit이 필요하다"는 틀렸다. `@Setter`는 컴파일 뒤에 남지 않아 `lombok.config`로 막는다(ADR-010 보충). QueryDSL 범위와 돈 타입 검사에는 여전히 ArchUnit이 필요하므로 결정은 그대로다.

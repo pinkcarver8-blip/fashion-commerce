@@ -3,6 +3,7 @@
 - 이슈: #7. ADR-007(QueryDSL을 쓸지, Specification·JPQL로 대체할지)의 입력이다(작업진행.md A1, E4-2).
 - 확인 방법: 시험 프로젝트 `tools/querydsl-smoke/`를 만들고 `./gradlew clean build`(컴파일 + Q클래스 생성 + 테스트)를 돌렸다. 테스트는 Testcontainers로 띄운 실제 MySQL에서 실행했다.
 - 확인 날짜: 2026-11-21.
+- 시험 프로젝트의 패키지명(`io.github.pinkcarver8blip`)은 ADR-010의 규약(`io.github.pinkcarver8_blip.commerce`)보다 먼저 만들었다. 버리는 시험 코드라 고치지 않는다. 실제 백엔드(R0-07)는 ADR-010을 따른다.
 
 ## 1. 결론
 
