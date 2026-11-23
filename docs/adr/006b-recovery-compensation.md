@@ -1,6 +1,6 @@
 # ADR-006b. 복구 작업자·보상 취소
 
-- **상태**: 제안
+- **상태**: 승인
 - **날짜**: 2026-11-23
 - **결정자**: 사용자 / **작성자**: Claude Code(Claude Opus 5.5)
 - **관련**: 작업 ID R0-05-006b(이슈 #31), E09·E10·E11·E48·E49·E50·E52, 불변식 I3·I4·I5, 기획서 §6-5, 작업진행.md B0·B5(6~8번)·B6·A5-1, 검토보고서 RP-5·RP-6, 입력 [`docs/reports/r0-verification.md`](../reports/r0-verification.md) §1·§2·§4·§8, ADR-004·ADR-006a
@@ -95,10 +95,11 @@
 
 ## 논의 기록
 - AI 제안: 위 결정. 단위 자동 진행(A3-8)으로 "제안" 상태로 머지하고 R0-05 최종 보고에서 승인받는다.
+- 사용자: 2026-11-24 R0-05 최종 보고에서 "나머지는 추천대로"로 승인했다(이슈 #47).
 
 ## 문서 반영 체크
-- [ ] 기획서 §6-5 7번과 E10 처리 문구(승인 뒤 반영 예정)
-- [ ] 작업진행.md B5 7번, E1의 E10 행, B0 4번에 "이중 환불", E3 행(승인 뒤 반영 예정)
-- [ ] 작업진행.md B6 2번·A5-1·`.claude/rules/money-payment.md`의 취소 멱등키 `cancel-{cancelRequestId}`를 `cancel-{pg_cancel uid}`로, B6 4번에 "claim 작업자", B6 5번 "명확한 실패"는 R1에서 없음(승인 뒤 반영 예정)
-- [ ] 작업진행.md B1(`payment`의 복구 작업자를 payment·claim 둘로), B3 시도 그림(`ORPHANED` 진입), B5 6번(`CANCEL_REQUESTED` 복구는 claim 작업자, E48 → E49 정정)(승인 뒤 반영 예정. E-ID 정정은 문서 오류라 이번에 고쳤다)
+- [x] 기획서 §6-5 7번과 E10 처리 문구 — 기획서 본문은 아직 고치지 않았다. v0.3(R1 종료)에서 고치고, 그때까지 작업진행.md E3 "주문 모델·상태·재고·복구" 행이 기준이다.
+- [x] 작업진행.md B5 7번, E1의 E10 행, B0 4번에 "이중 환불", E3 행(2026-11-24 반영)
+- [x] 작업진행.md B6 2번·A5-1·`.claude/rules/money-payment.md`의 취소 멱등키 `cancel-{cancelRequestId}`를 `cancel-{pg_cancel uid}`로, B6 4번에 "claim 작업자", B6 5번 "명확한 실패"는 R1에서 없음(2026-11-24 반영)
+- [x] 작업진행.md B1(`payment`의 복구 작업자를 payment·claim 둘로), B3 시도 그림(`ORPHANED` 진입), B5 6번(`CANCEL_REQUESTED` 복구는 claim 작업자, E48 → E49 정정)(승인 뒤 반영 예정. E-ID 정정은 문서 오류라 이번에 고쳤다)
 - [x] RP-7을 작업진행.md E4-2에 "R1-09에서 결정"으로 등록(2026-11-24)

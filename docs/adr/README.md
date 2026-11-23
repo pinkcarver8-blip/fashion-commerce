@@ -9,11 +9,11 @@
 |---|---|---|---|
 | [001](001-modular-monolith.md) | 모듈러 모놀리스와 동기 호출 목록 | R0-05-001 | 승인 |
 | [002](002-java-version.md) | Java 버전: Java 21 LTS로 시작한다 | R0-05-002 | 승인 |
-| [003](003-order-two-level-model.md) | 주문 2단 모델·판매자 스냅샷·R4 이관 계획 | R0-05-003 | 제안 |
-| [004](004-order-state-machine.md) | 주문 상태 머신 | R0-05-004 | 제안 |
-| [005](005-inventory-reservation.md) | 재고 3계층·원장·만료 분리·TTL·잠금 순서 | R0-05-005 | 제안 |
+| [003](003-order-two-level-model.md) | 주문 2단 모델·판매자 스냅샷·R4 이관 계획 | R0-05-003 | 승인 |
+| [004](004-order-state-machine.md) | 주문 상태 머신 | R0-05-004 | 승인 |
+| [005](005-inventory-reservation.md) | 재고 3계층·원장·만료 분리·TTL·잠금 순서 | R0-05-005 | 승인 |
 | [006a](006a-payment-attempt.md) | 결제 시도 모델·조건부 전이 | R0-05-006a | 제안 |
-| [006b](006b-recovery-compensation.md) | 복구 작업자·보상 취소 | R0-05-006b | 제안 |
+| [006b](006b-recovery-compensation.md) | 복구 작업자·보상 취소 | R0-05-006b | 승인 |
 | [007](007-querydsl.md) | QueryDSL: OpenFeign 포크를 읽기 조회에만 쓴다 | R0-05-007 | 승인 |
 | [008](008-auth.md) | 인증·인가(관리자 계정 분리, 토큰 저장, 쿠키·CORS) | R0-05-008 | 제안 |
 | [009](009-frontend-structure.md) | 프론트 구조(두 앱, 공유 패키지, 스타일 방식) | R0-05-009 | 제안 |
