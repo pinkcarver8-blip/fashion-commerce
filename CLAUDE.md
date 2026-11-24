@@ -43,7 +43,7 @@
 | `.claude/rules/` | 영역 규칙(§8). 파일마다 적용 경로가 있어 그 경로의 파일을 만질 때 자동으로 읽힌다 | 짧음 | 자동 |
 | `.github/` | 이슈 양식(`ISSUE_TEMPLATE/task.yml`), PR 양식(AI 기록 칸) | 짧음 | 이슈·PR을 쓸 때 |
 | `docs/` | `adr/`(ADR 양식·목록, 규칙은 작업진행.md A7), `interview/`(ADR별 면접 꼬리 질문), `reports/`(R0 확인·빌드 보고서), `db/erd.md`(ERD 초안), `known-issues.md`(미확정·임시방편 목록, A7), `ai/review-checklist.md`(검증 점검표·실수 이력, A3-9), `ai/mistakes.md`(재현 테스트가 있는 AI 코드 오류) | 보고서만 김 | 해당 작업 때, 보고서는 필요한 절만 |
-| `backend/` | Spring Boot 백엔드(R0-06). 모듈 패키지는 `src/main/java/io/github/pinkcarver8_blip/commerce/<모듈>/`, 구조 규칙(ArchUnit)은 `src/test/.../commerce/architecture/` | — | 백엔드 작업 때 |
+| `backend/`·`frontend/`·`infra/` | 백엔드(R0-06), 화면 앱 작업 공간(store·admin·packages, R0-07), 로컬 실행 설정(`docker-compose.yml`, R0-07). 백엔드 모듈 패키지는 `src/main/java/io/github/pinkcarver8_blip/commerce/<모듈>/`, 구조 규칙(ArchUnit)은 `src/test/.../commerce/architecture/` | — | 그 폴더의 코드 작업 때 |
 | `tools/` | `doc-check/`(문서 검사 스크립트, A3-9), `pg-stub/`(R0-03 실측 응답), `toss-probe/`(R0-03 검증 도구), `querydsl-smoke/`(R0-04 시험 프로젝트) | — | 해당 작업 때만 |
 
 관계: `기획근거/`(근거) → `기획서.md`(왜·범위) → `작업진행.md`(무엇을, 어떤 규칙으로) → `진행현황.md`(실행 상태).

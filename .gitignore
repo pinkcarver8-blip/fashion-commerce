@@ -32,6 +32,7 @@ coverage/
 playwright-report/
 test-results/
 .vite/
+*.tsbuildinfo
 
 # IDE·OS
 .idea/

@@ -1,5 +1,5 @@
 // 커머스 백엔드(모듈러 모놀리스). 스택과 버전은 작업진행.md A1, 공급망 규칙은 A5-12, 공통 규약은 ADR-010.
-// R0-06은 모듈 경계 규칙(ArchUnit)을 돌릴 만큼만 둔다. 웹·JPA·Flyway·DB 연결은 R0-07과 R1에서 더한다.
+// R0-06에 골격과 모듈 경계 규칙(ArchUnit), R0-07에 웹·JPA·Flyway·Redis 연결을 더했다.
 
 // 빌드 플러그인도 잠금 파일(buildscript-gradle.lockfile)에 적힌 버전만 쓴다.
 buildscript {
@@ -44,7 +44,17 @@ configurations {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
+	// 웹·DB·캐시(R0-07). 모두 A1 스택과 Boot 공식 스타터다.
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-flyway'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	runtimeOnly 'org.flywaydb:flyway-mysql'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	// 읽기 조회 전용(ADR-007). 쓰는 곳은 <모듈>.query 패키지뿐이다(ArchUnit).
+	implementation "io.github.openfeign.querydsl:querydsl-jpa:${querydslVersion}"
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${querydslVersion}:jpa"
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
 	// Lombok은 컴파일할 때만 쓴다. 완성된 서비스(jar)에는 들어가지 않는다(A5-12 Lombok 대책).
 	compileOnly 'org.projectlombok:lombok'
@@ -59,7 +69,6 @@ dependencies {
 	testImplementation 'org.springframework:spring-web'
 	testImplementation 'jakarta.persistence:jakarta.persistence-api'
 	testImplementation 'org.springframework:spring-tx'   // 공유 모듈 위반 예시의 @Transactional
-	testImplementation "io.github.openfeign.querydsl:querydsl-jpa:${querydslVersion}"
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	// 예시 엔티티의 Q클래스를 실제로 만들어, 규칙이 Q클래스를 잘못 잡지 않는지 본다.
@@ -69,7 +78,7 @@ dependencies {
 	lombokCheck 'org.projectlombok:lombok'
 }
 
-// bootJar에 Boot의 추출 도구(jarmode-tools)를 넣지 않는다. 잠금 파일에 나오지 않는 jar라서, 쓸 일이 생기면(R0-07 Docker 이미지 등) 그때 켠다.
+// bootJar에 Boot의 추출 도구(jarmode-tools)를 넣지 않는다. 잠금 파일에 나오지 않는 jar라서 쓰지 않는다(R0-07 이미지도 jar 하나를 그대로 실행한다).
 tasks.named('bootJar') {
 	includeTools = false
 }

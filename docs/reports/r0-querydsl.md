@@ -24,7 +24,7 @@
 
 새 의존성은 모두 Maven Central에 실제로 있는 것을 확인했다(A5-12).
 
-## 3. 설정에서 주의할 점 (R0-07 백엔드에 옮길 것)
+## 3. 설정에서 주의할 점 (R0-07 백엔드에 옮겼다, 2026-11-24)
 
 - **버전을 직접 적는다.** Boot가 관리하는 `querydsl.version`(5.1.0)은 원본(`com.querydsl`) 것이라 포크(`io.github.openfeign.querydsl`)에는 적용되지 않는다. 포크는 Boot 관리 목록에 없으므로 버전을 의존성에 직접 적는다.
 - **주석 처리기는 `jpa` 분류자를 쓴다.** 포크 문서(openfeign.github.io/querydsl/tutorials/jpa)의 설정이다. `jakarta` 분류자도 있지만 문서 기준을 따랐다. `jakarta.persistence-api`도 주석 처리기 경로에 넣는다(버전은 Boot 관리).
@@ -66,4 +66,4 @@
 
 - **결정 제안**: QueryDSL(OpenFeign 포크)을 쓴다. 범위는 기획서 §9-2 "QueryDSL 주의"대로 읽기 조회(PLP 필터, 관리자 검색, 정산 조회)이고, 돈·재고를 바꾸는 쓰기에는 쓰지 않는다.
 - **위험**: 포크는 커뮤니티 유지보수다. 원본(`com.querydsl`)은 Boot 관리 목록에 5.1.0이 남아 있지만, 이번에 확인한 것은 포크 7.7 + Hibernate 7.4 조합뿐이다. 포크가 멈추면 Specification·JPQL로 옮긴다. 옮길 부담을 줄이려면 QueryDSL 코드를 `…RepositoryImpl` 같은 조회 전용 클래스에만 둔다.
-- **미결**: Gradle 잠금 파일(A5-12)은 시험 프로젝트에 넣지 않았다. 실제 백엔드(R0-07)에서 넣을지 정한다.
+- **미결**: Gradle 잠금 파일(A5-12)은 시험 프로젝트에 넣지 않았다. 실제 백엔드(R0-07)에서 넣을지 정한다. → R0-06에서 넣었다(`backend/gradle.lockfile`, 엄격 모드).

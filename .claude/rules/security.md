@@ -8,6 +8,8 @@ paths:
   - "backend/**/member/**"
   - "backend/**/admin/**"
   - "frontend/admin/**"
+  - "frontend/nginx/**"
+  - "infra/**"
 ---
 
 # [엄격] 보안: 인증·인가·관리자·개인정보

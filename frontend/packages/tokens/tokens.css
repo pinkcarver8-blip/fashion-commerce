@@ -1,0 +1,45 @@
+/*
+ * 디자인 토큰 (작업진행.md A8). R0-07 임시 값이다. 디자인이 정해지면 값만 바꾼다.
+ * 컴포넌트는 색·간격·글자 크기를 직접 쓰지 않고 이 변수만 쓴다.
+ */
+:root {
+  /* 색: 기본 */
+  --color-gray-0: #ffffff;
+  --color-gray-50: #f7f7f8;
+  --color-gray-200: #e3e3e8;
+  --color-gray-600: #5f5f68; /* 흰 바탕 대비 약 6.3:1(WCAG AA 4.5:1 이상) */
+  --color-gray-900: #17171c;
+  --color-accent-600: #3b4bd8;
+  --color-danger-600: #c62f2f;
+
+  /* 색: 의미(컴포넌트는 이쪽을 쓴다) */
+  --color-bg: var(--color-gray-0);
+  --color-bg-subtle: var(--color-gray-50);
+  --color-border: var(--color-gray-200);
+  --color-text: var(--color-gray-900);
+  --color-text-muted: var(--color-gray-600);
+  --color-primary: var(--color-accent-600);
+  --color-danger: var(--color-danger-600);
+  --color-banner-bg: var(--color-gray-900);
+  --color-banner-text: var(--color-gray-0);
+
+  /* 간격: 4의 배수 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* 글자 */
+  --font-family-base: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-size-sm: 13px;
+  --font-size-md: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --line-height-base: 1.5;
+
+  /* 모서리 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}

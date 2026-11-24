@@ -1,0 +1,33 @@
+# 백엔드 설정. 비밀값은 여기 두지 않고 환경변수로 받는다(A5-10). 로컬 값은 infra/docker-compose.yml이 넘긴다.
+spring:
+  application:
+    name: commerce
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # 테이블은 Flyway 마이그레이션만 만든다. JPA가 스키마를 고치지 않는다(A5-4).
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+  jackson:
+    time-zone: UTC
+
+  # 오류 응답에 스택 트레이스·예외 메시지를 싣지 않는다(A5-9 S9). 오류 형식(RFC 9457)은 R1-03.
+  # Boot 4부터 이름이 server.error.*에서 spring.web.error.*로 바뀌었다(옛 이름은 적용되지 않는다).
+  web:
+    error:
+      include-stacktrace: never
+      include-message: never
+      include-binding-errors: never
+      include-exception: false
