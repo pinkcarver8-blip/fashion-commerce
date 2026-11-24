@@ -22,7 +22,10 @@
       "Bash(git -c *)",
       "Bash(git -C *)",
       "Bash(git config *)",
-      "Edit(.git/hooks/**)"
+      "Edit(.git/hooks/**)",
+      "Bash(docker compose*config*)",
+      "Bash(docker inspect*)",
+      "Bash(docker container inspect*)"
     ],
     "ask": [
       "Bash(git reset --hard*)"
