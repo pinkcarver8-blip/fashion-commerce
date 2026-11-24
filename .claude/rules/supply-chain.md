@@ -29,3 +29,4 @@ paths:
 - 새 의존성은 PR에 이유를 적는다. AI가 제안한 패키지는 실제로 있는 패키지인지 확인한다(이름만 비슷한 가짜 방지).
 - CI에 운영 키를 두지 않는다. 시크릿이 필요한 테스트는 PG 스텁으로 바꾼다.
 - pnpm 설정(`frontend/pnpm-workspace.yaml`)의 새 판 7일 대기와 신뢰 하락 막기를 끄거나 줄이지 않는다. 컨테이너 이미지는 판 번호 + 지문으로 고정한다(A5-12).
+- 검사 파일(`.github/`, `tools/ci/`, `.gitleaks.toml`, `verification-metadata.xml`, `build.gradle`, `pnpm-workspace.yaml`, `eslint.config.js`)을 바꾸는 PR은 [일반] 단위에서도 합치기 전에 사용자에게 바뀐 줄을 보여 주고 승인받는다(A3-8 ⑥).
