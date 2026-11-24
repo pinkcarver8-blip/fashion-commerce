@@ -34,7 +34,22 @@ export default tseslint.config(
     files: ['**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
-    rules: reactHooks.configs.recommended.rules,
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      // ADR-009 강제: 원시 HTML 넣기 금지(A5-9 S5), 토큰을 브라우저 저장소에 두지 않기(ADR-008).
+      // 토큰이 아닌 값을 저장해야 하면 그 파일만 예외로 열고 이유를 적는다.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message: '원시 HTML을 넣지 않는다(A5-9 S5).',
+        },
+        {
+          selector: "Identifier[name='localStorage'], Identifier[name='sessionStorage']",
+          message: '브라우저 저장소를 쓰지 않는다. 토큰은 메모리에만 둔다(ADR-008·009).',
+        },
+      ],
+    },
   },
   { files: ['store/**/*.{ts,tsx}'], rules: forbid([NO_ADMIN]) },
   { files: ['admin/**/*.{ts,tsx}'], rules: forbid([NO_STORE]) },

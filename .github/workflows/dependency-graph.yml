@@ -1,0 +1,56 @@
+# 백엔드(Gradle) 부품 목록을 만든다. GitHub는 Gradle 파일을 직접 읽지 못한다.
+# PR의 빌드 파일은 믿을 수 없으므로 PR에서는 읽기 권한으로 목록만 만들어 올려 두고(artifact),
+# GitHub에 제출하는 일(쓰기 권한)은 main의 dependency-graph-submit 작업 흐름이 한다(gradle/actions 문서의 방식).
+name: dependency-graph
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  gradle-graph:
+    name: gradle-graph
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Gradle wrapper 변조 검사(빌드 파일을 실행하기 전에)
+        uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          build-root-directory: backend
+          dependency-graph: generate-and-upload
+
+  gradle-graph-main:
+    name: gradle-graph-main
+    # main에 합쳐진 코드는 보호 규칙과 사람 확인을 거쳤다. 여기서만 바로 제출한다(Dependabot 경고의 근거).
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Gradle wrapper 변조 검사
+        uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          build-root-directory: backend

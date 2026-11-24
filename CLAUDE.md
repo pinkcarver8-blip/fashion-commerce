@@ -41,7 +41,7 @@
 | `prompt.md` | 사용자가 지시를 적는 입력창. 내용이 수시로 바뀐다. 로컬 전용(저장소 제외) | — | 사용자가 첨부하거나 가리킬 때만 |
 | `.claude/settings.json` | AI 거부 규칙(비밀값 읽기, 강제 push). 이유와 한계는 작업진행.md A5-10 | 짧음 | 고칠 때만 |
 | `.claude/rules/` | 영역 규칙(§8). 파일마다 적용 경로가 있어 그 경로의 파일을 만질 때 자동으로 읽힌다 | 짧음 | 자동 |
-| `.github/` | 이슈 양식(`ISSUE_TEMPLATE/task.yml`), PR 양식(AI 기록 칸) | 짧음 | 이슈·PR을 쓸 때 |
+| `.github/` | 이슈 양식(`ISSUE_TEMPLATE/task.yml`), PR 양식(AI 기록 칸), CI 작업 흐름(`workflows/`, R0-08), Dependabot 설정 | 짧음 | 이슈·PR을 쓸 때 |
 | `docs/` | `adr/`(ADR 양식·목록, 규칙은 작업진행.md A7), `interview/`(ADR별 면접 꼬리 질문), `reports/`(R0 확인·빌드 보고서), `db/erd.md`(ERD 초안), `known-issues.md`(미확정·임시방편 목록, A7), `ai/review-checklist.md`(검증 점검표·실수 이력, A3-9), `ai/mistakes.md`(재현 테스트가 있는 AI 코드 오류) | 보고서만 김 | 해당 작업 때, 보고서는 필요한 절만 |
 | `backend/`·`frontend/`·`infra/` | 백엔드(R0-06), 화면 앱 작업 공간(store·admin·packages, R0-07), 로컬 실행 설정(`docker-compose.yml`, R0-07). 백엔드 모듈 패키지는 `src/main/java/io/github/pinkcarver8_blip/commerce/<모듈>/`, 구조 규칙(ArchUnit)은 `src/test/.../commerce/architecture/` | — | 그 폴더의 코드 작업 때 |
 | `tools/` | `doc-check/`(문서 검사 스크립트, A3-9), `ci/`(CI 검사 스크립트, R0-08), `pg-stub/`(R0-03 실측 응답), `toss-probe/`(R0-03 검증 도구), `querydsl-smoke/`(R0-04 시험 프로젝트) | — | 해당 작업 때만 |

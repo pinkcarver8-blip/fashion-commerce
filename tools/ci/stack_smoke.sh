@@ -3,7 +3,8 @@
 # 비밀번호는 실행할 때마다 무작위로 만들고, 끝나면 컨테이너와 데이터를 지운다.
 set -euo pipefail
 
-COMPOSE=(docker compose -f infra/docker-compose.yml)
+# CI 전용이다. 프로젝트 이름을 따로 써서, 혹시 내 컴퓨터에서 돌려도 로컬 데이터(commerce)를 지우지 않는다.
+COMPOSE=(docker compose -p commerce-ci -f infra/docker-compose.yml)
 cleanup() { "${COMPOSE[@]}" down -v --remove-orphans >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
@@ -18,12 +19,17 @@ for port in 3000 3001; do
 done
 
 # 백엔드가 다 뜰 때까지 기다린다(최대 120초).
+reached_backend=no
 for _ in $(seq 1 60); do
   code=$(curl -s -o /tmp/api.json -w '%{http_code}' http://localhost:3000/api/does-not-exist || true)
-  [ "$code" = "404" ] && grep -q '"status":404' /tmp/api.json && break
+  if [ "$code" = "404" ] && grep -q '"status":404' /tmp/api.json; then
+    reached_backend=yes
+    break
+  fi
   sleep 2
 done
-[ "$code" = "404" ] || fail "/api 요청이 백엔드 404로 오지 않는다(받은 값: ${code})"
+# Nginx가 스스로 404를 내도 숫자는 같으므로, 백엔드의 JSON 404를 받았는지로 판단한다.
+[ "$reached_backend" = "yes" ] || fail "/api 요청이 백엔드에 닿지 않는다(마지막 응답 코드: ${code})"
 grep -qiE 'trace|exception' /tmp/api.json && fail "오류 응답에 내부 정보가 있다"
 
 # grep -q가 먼저 끝나면 앞 명령이 출력 도중 끊겨 실패로 잡히므로(pipefail), 출력을 먼저 다 받은 뒤 찾는다.

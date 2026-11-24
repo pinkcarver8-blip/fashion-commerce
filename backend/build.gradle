@@ -109,8 +109,8 @@ tasks.withType(JavaCompile).configureEach {
 spotless {
 	java {
 		target 'src/**/*.java'
+		// google-java-format이 쓰지 않는 import도 지운다. removeUnusedImports()는 옛 판(1.28.0)을 따로 받아 쓰지 않는다.
 		googleJavaFormat('1.36.1').aosp()
-		removeUnusedImports()
 	}
 }
 

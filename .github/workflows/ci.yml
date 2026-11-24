@@ -11,12 +11,14 @@ permissions: {}
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # PR은 새 커밋이 오면 앞 실행을 멈춘다. main은 합친 커밋마다 끝까지 검사한다.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   policy:
     name: policy
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -31,14 +33,11 @@ jobs:
       - name: 문서 링크·ADR 목록(doc-check)
         if: ${{ !cancelled() }}
         run: python3 tools/doc-check/doc_check.py
-      - name: PR 설명의 AI 기록 네 칸
-        # Dependabot PR에는 AI 기록이 없다. 작성자가 dependabot[bot]일 때만 건너뛴다.
-        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]' }}
-        run: python3 tools/ci/check_pr_body.py
 
   secrets:
     name: secrets
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -57,6 +56,7 @@ jobs:
   backend:
     name: backend
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     permissions:
       contents: read
     defaults:
@@ -83,6 +83,7 @@ jobs:
   frontend:
     name: frontend
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     permissions:
       contents: read
     defaults:
@@ -111,10 +112,18 @@ jobs:
       - name: 빌드
         if: ${{ !cancelled() }}
         run: pnpm build
+      - name: 고객 앱 빌드에 관리자 주소가 없다(ADR-009)
+        if: ${{ !cancelled() }}
+        run: |
+          if grep -rn "/api/admin" store/dist; then
+            echo "고객 앱(store) 빌드에 /api/admin이 들어 있다"
+            exit 1
+          fi
 
   stack:
     name: stack
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     permissions:
       contents: read
     steps:

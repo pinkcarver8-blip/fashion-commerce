@@ -15,7 +15,10 @@ def section_text(body: str, title: str) -> str:
     match = re.search(rf"^###\s*{re.escape(title)}[^\n]*\n(.*?)(?=^#{{1,3}}\s|\Z)", body, re.MULTILINE | re.DOTALL)
     if not match:
         return ""
-    return re.sub(r"<!--.*?-->", "", match.group(1), flags=re.DOTALL).strip()
+    # 닫히지 않은 주석(<!--)은 GitHub 화면에서 뒤를 모두 가리므로 끝까지 지운다.
+    text = re.sub(r"<!--.*?(-->|\Z)", "", match.group(1), flags=re.DOTALL)
+    # 글자나 숫자가 하나도 없으면(예: "-") 빈칸으로 본다.
+    return text.strip() if re.search(r"[0-9A-Za-z가-힣]", text) else ""
 
 
 def main() -> int:

@@ -33,4 +33,5 @@ PR 제목: 종류(범위): 요약 [작업ID][E-ID]
 - [ ] 마이그레이션은 별도 커밋이고, 이미 적용한 파일을 고치지 않았다 (A5-4)
 - [ ] 새 의존성은 이유를 적었고 실제로 있는 패키지인지 확인했다 (A5-12)
 - [ ] 설계 선택이 있었으면 ADR을 썼고, 문서와 달라진 곳을 갱신했다 (A3-6, A7)
+- [ ] 검사 자체를 바꾸는 파일(`.github/`, `tools/ci/`, `.gitleaks.toml`, `backend/gradle/verification-metadata.xml`, `backend/build.gradle`, `frontend/pnpm-workspace.yaml`, `frontend/eslint.config.js`)을 바꿨으면 한 줄씩 읽었다. CI는 PR이 고친 검사로 돌기 때문에, 검사를 약하게 고치면 녹색이 된다 (A5-12)
 - [ ] AI가 틀린 부분은 '내 판단' 칸에 적었고, 재현 테스트를 붙일 수 있는 코드 오류면 `docs/ai/mistakes.md`에도 남겼다 (A3-2의 8)
