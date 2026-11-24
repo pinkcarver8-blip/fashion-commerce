@@ -1,4 +1,4 @@
-package io.github.pinkcarver8_blip.commerce.common;
+package io.github.pinkcarver8_blip.commerce.money;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,6 +1,6 @@
 package io.github.pinkcarver8_blip.archfixture.ok.catalog.domain;
 
-import io.github.pinkcarver8_blip.commerce.common.AllowDecimal;
+import io.github.pinkcarver8_blip.commerce.money.AllowDecimal;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Getter;

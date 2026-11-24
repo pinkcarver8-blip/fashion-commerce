@@ -53,6 +53,7 @@ org.springframework:spring-beans:7.0.11=compileClasspath,productionRuntimeClassp
 org.springframework:spring-context:7.0.11=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.springframework:spring-core:7.0.11=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.springframework:spring-expression:7.0.11=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.springframework:spring-tx:7.0.11=testCompileClasspath,testRuntimeClasspath
 org.springframework:spring-web:7.0.11=testCompileClasspath,testRuntimeClasspath
 org.yaml:snakeyaml:2.6=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 empty=developmentOnly,testAndDevelopmentOnly

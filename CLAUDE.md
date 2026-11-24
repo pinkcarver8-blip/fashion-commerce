@@ -174,5 +174,6 @@
 | `tests.md` | 백엔드·프론트 테스트 | A4, A5-7 |
 | `frontend.md` | `frontend/**` | A2, A5-9, A8 |
 | `supply-chain.md` | `.github/**`, Gradle·pnpm 파일 | A5-12 |
+| `shared-modules.md` | 공유 모듈 5개(`money`·`id`·`error`·`identity`·`platform`), 허용 목록 | ADR-001 보충 |
 
 패키지 경로는 `backend/src/main/java/io/github/pinkcarver8_blip/commerce/<모듈>/`이다(R0-06). 규칙 파일의 `paths`가 이 경로에 맞는 것을 확인했다(2026-11-24).

@@ -58,6 +58,7 @@ dependencies {
 	// 아래는 규칙 위반 예시(src/test/.../archfixture)를 컴파일하는 데만 쓴다.
 	testImplementation 'org.springframework:spring-web'
 	testImplementation 'jakarta.persistence:jakarta.persistence-api'
+	testImplementation 'org.springframework:spring-tx'   // 공유 모듈 위반 예시의 @Transactional
 	testImplementation "io.github.openfeign.querydsl:querydsl-jpa:${querydslVersion}"
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'

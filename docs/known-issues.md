@@ -14,3 +14,4 @@
 | K8 | 같은 파일, 소수 타입 규칙 | `@AllowDecimal` 필드가 있는 클래스에 Lombok `@Builder`를 달면 빌더 코드가 실패한다 | Lombok은 표시를 빌더 필드·메서드까지 복사하지 않는다 | 그런 클래스에는 `@Builder`를 쓰지 않고 생성자를 쓴다 |
 | K9 | 같은 파일, 소수 타입 규칙 | 재시도 간격의 무작위 흔들기(`ThreadLocalRandom.nextDouble`), Spring `ExponentialBackOff(long, double)`, 지표 기록(`record(double)`)도 막힌다 | 돈이 아니어도 소수 타입 전부를 막기로 했다(ADR-010 보충) | 쓰는 메서드마다 `@AllowDecimal(reason)`을 단다. 의도한 동작이다 |
 | K10 | 같은 파일, 주문상품·주문 상태 규칙 | 주문상품의 `@PrePersist`가 필드를 채우거나, `Order` 안의 중첩 클래스가 상태를 바꾸면 실패한다 | 생성자 밖·`Order` 밖의 쓰기로 본다 | 의도한 동작이다. 생성 시각은 생성자에서 채운다 |
+| K11 | 같은 파일, 공유 모듈 허용 목록 | 목록에 있는 함수의 속(계산 내용)을 바꾸는 것은 잡지 못한다. 예: `Money.plus`가 수수료를 더하게 고친다 | 목록은 이름과 매개변수만 본다 | `Money` 단위 시험(R1-06)과 코드 읽기 |

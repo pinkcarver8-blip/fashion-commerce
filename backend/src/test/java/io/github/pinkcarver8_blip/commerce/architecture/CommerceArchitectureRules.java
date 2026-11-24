@@ -44,7 +44,22 @@ final class CommerceArchitectureRules {
 
   static final String COMMERCE_ROOT = "io.github.pinkcarver8_blip.commerce";
 
-  static final String COMMON = "common";
+  /**
+   * 공유 모듈(ADR-001 보충): 업무 책임 없이 코드만 나눠 쓰는 작은 모듈. 값은 그 모듈이 부를 수 있는 다른 공유 모듈이다. 업무 모듈은
+   * {@code platform}을 뺀 공유 모듈을 모두 부를 수 있고, {@code platform}은 아무도 부를 수 없다. 공유 모듈은 업무 모듈을 부르지 않는다.
+   */
+  static final Map<String, Set<String>> SHARED_CALLS =
+      Map.of(
+          "money", Set.of(),
+          "id", Set.of(),
+          "error", Set.of(),
+          "identity", Set.of(),
+          "platform", Set.of("identity", "error"));
+
+  /** 내용을 허용 목록으로 고정하는 공유 모듈. platform은 아무도 부를 수 없어서 클래스 이름만 목록으로 본다. */
+  static final Set<String> LISTED_SHARED_MODULES = Set.of("money", "id", "error", "identity");
+
+  static final String PLATFORM = "platform";
 
   /**
    * ADR-001 동기 호출 목록 중 R1에 도입하는 것(보충의 {@code shipping → inventory} 포함). 왼쪽 모듈은 오른쪽 모듈의 공개 API만 부를 수
@@ -64,7 +79,7 @@ final class CommerceArchitectureRules {
           "catalog", Set.of(),
           "member", Set.of());
 
-  private static final String ALLOW_DECIMAL = COMMERCE_ROOT + ".common.AllowDecimal";
+  private static final String ALLOW_DECIMAL = COMMERCE_ROOT + ".money.AllowDecimal";
 
   private static final Set<String> DECIMAL_TYPES =
       Set.of(
@@ -85,10 +100,38 @@ final class CommerceArchitectureRules {
 
   private static final Set<String> QUERYDSL_WRITE_METHODS = Set.of("update", "delete", "insert");
 
+  /** 공유 모듈에 둘 수 있는 데이터 접근 도구가 아닌 것을 가리기 위한 패키지 목록. */
+  private static final List<String> DATA_ACCESS_PACKAGES =
+      List.of(
+          "jakarta.persistence",
+          "org.springframework.data",
+          "org.springframework.jdbc",
+          "org.springframework.orm",
+          "org.hibernate",
+          "com.querydsl",
+          "java.sql",
+          "javax.sql");
+
+  private static final String COMPONENT = "org.springframework.stereotype.Component";
+  private static final String SERVICE = "org.springframework.stereotype.Service";
+  private static final String REPOSITORY = "org.springframework.stereotype.Repository";
+  private static final Set<String> TRANSACTIONAL =
+      Set.of(
+          "org.springframework.transaction.annotation.Transactional",
+          "jakarta.transaction.Transactional");
+
   private final String root;
 
+  /** 공유 모듈 허용 목록. 항목은 루트 아래 이름이다(예: {@code money.Money}, {@code money.Money.plus(…Money)}). */
+  private final Set<String> sharedAllowlist;
+
   CommerceArchitectureRules(String root) {
+    this(root, Set.of());
+  }
+
+  CommerceArchitectureRules(String root, Set<String> sharedAllowlist) {
     this.root = root;
+    this.sharedAllowlist = sharedAllowlist;
   }
 
   List<ArchRule> all() {
@@ -102,7 +145,9 @@ final class CommerceArchitectureRules {
         noDecimalTypes(),
         orderItemFieldsWrittenOnlyInConstructor(),
         orderStatusWrittenOnlyByOrder(),
-        noLombokEqualsHashCodeToStringOnEntities());
+        noLombokEqualsHashCodeToStringOnEntities(),
+        sharedModulesStayMinimal(),
+        sharedModulesMatchAllowlist());
   }
 
   /** 시나리오 1·3: 목록(ADR-001)에 있는 방향으로, 상대 모듈의 공개 API({@code <모듈>.api})만 쓴다. */
@@ -152,14 +197,22 @@ final class CommerceArchitectureRules {
     if (from == null) {
       return "루트 패키지는 모듈에 의존하지 않는다";
     }
-    if (COMMON.equals(from)) {
-      return "common은 모듈에 의존하지 않는다";
-    }
-    if (COMMON.equals(to)) {
-      return null;
-    }
     if (!isKnownModule(to)) {
       return "B1·ADR-001 목록에 없는 모듈 패키지 '" + to + "'에 의존한다";
+    }
+    if (SHARED_CALLS.containsKey(from)) {
+      if (!SHARED_CALLS.containsKey(to)) {
+        return "공유 모듈 " + from + "은 업무 모듈에 의존하지 않는다";
+      }
+      return SHARED_CALLS.get(from).contains(to)
+          ? null
+          : "공유 모듈 " + from + " → " + to + " 방향은 정해 둔 목록(SHARED_CALLS)에 없다";
+    }
+    if (PLATFORM.equals(to)) {
+      return "platform은 아무도 부를 수 없다";
+    }
+    if (SHARED_CALLS.containsKey(to)) {
+      return null;
     }
     if (!ALLOWED_CALLS.get(from).contains(to)) {
       return from + " → " + to + " 호출은 ADR-001 목록에 없다";
@@ -478,6 +531,142 @@ final class CommerceArchitectureRules {
                 }));
   }
 
+  /**
+   * 시나리오 12(공유 모듈): 공유 모듈은 업무 처리를 담지 않는다. DB 도구를 쓰지 않고, {@code @Service}·{@code @Repository}·
+   * {@code @Transactional}을 쓰지 않는다. 목록에 고정하는 공유 모듈(money·id·error·identity)은 Spring 부품({@code @Component}
+   * 계열)도 아니고, 정적 함수는 자기 타입을 만드는 함수만 둔다(예: {@code Money.of(1000)}은 되고 {@code Money.fee(…)}는 안 된다).
+   */
+  ArchRule sharedModulesStayMinimal() {
+    return classes()
+        .should(
+            condition(
+                "공유 모듈은 DB·업무 처리 없이 값과 앱 설정만 담는다",
+                (type, events) -> {
+                  Optional<String> module = moduleOf(type).filter(SHARED_CALLS::containsKey);
+                  if (module.isEmpty()) {
+                    return;
+                  }
+                  for (Dependency dependency : type.getDirectDependenciesFromSelf()) {
+                    String target = dependency.getTargetClass().getPackageName();
+                    if (DATA_ACCESS_PACKAGES.stream()
+                        .anyMatch(name -> target.equals(name) || target.startsWith(name + "."))) {
+                      events.add(
+                          SimpleConditionEvent.violated(
+                              dependency, "공유 모듈이 DB 도구를 쓴다: " + dependency.getDescription()));
+                    }
+                  }
+                  if (hasAnnotation(type, SERVICE) || hasAnnotation(type, REPOSITORY)) {
+                    events.add(
+                        SimpleConditionEvent.violated(
+                            type, "공유 모듈에 업무 처리 부품(@Service·@Repository)이 있다: " + type.getName()));
+                  }
+                  boolean transactional =
+                      TRANSACTIONAL.stream().anyMatch(name -> hasAnnotation(type, name))
+                          || type.getCodeUnits().stream()
+                              .anyMatch(
+                                  unit -> TRANSACTIONAL.stream().anyMatch(unit::isAnnotatedWith));
+                  if (transactional) {
+                    events.add(
+                        SimpleConditionEvent.violated(
+                            type, "공유 모듈에 @Transactional이 있다: " + type.getName()));
+                  }
+                  if (!LISTED_SHARED_MODULES.contains(module.get())) {
+                    return;
+                  }
+                  if (hasAnnotation(type, COMPONENT)) {
+                    events.add(
+                        SimpleConditionEvent.violated(
+                            type, "값 공유 모듈에 Spring 부품(@Component 계열)이 있다: " + type.getName()));
+                  }
+                  for (JavaMethod method : type.getMethods()) {
+                    boolean isStatic = method.getModifiers().contains(JavaModifier.STATIC);
+                    boolean synthetic = method.getModifiers().contains(JavaModifier.SYNTHETIC);
+                    boolean makesOwnType =
+                        method.getRawReturnType().getBaseComponentType().equals(type);
+                    if (isStatic && !synthetic && !makesOwnType) {
+                      events.add(
+                          SimpleConditionEvent.violated(
+                              method,
+                              "값 공유 모듈의 정적 함수는 자기 타입을 만드는 함수만 둔다: "
+                                  + method.getFullName()));
+                    }
+                  }
+                }));
+  }
+
+  /**
+   * 시나리오 12(공유 모듈): 공유 모듈의 클래스와 공개 멤버는 허용 목록과 똑같다. 목록에 없는 것이 생기거나, 목록에 있는데 코드에 없으면 실패한다.
+   * 목록을 바꾸는 일은 단위를 시작할 때 사용자 승인을 받는다(작업진행.md A3-8). platform은 클래스 이름만 본다. 컴파일러가 만드는 멤버(record의
+   * equals·hashCode·toString, enum의 values·valueOf)는 업무 함수가 아니라 목록에서 뺀다.
+   */
+  ArchRule sharedModulesMatchAllowlist() {
+    return classes()
+        .should(
+            new ArchCondition<JavaClass>("공유 모듈의 클래스와 공개 멤버는 허용 목록과 같다") {
+              private final Set<String> present = new java.util.HashSet<>();
+
+              @Override
+              public void check(JavaClass type, ConditionEvents events) {
+                sharedEntries(type)
+                    .peek(present::add)
+                    .filter(entry -> !sharedAllowlist.contains(entry))
+                    .forEach(
+                        entry ->
+                            events.add(SimpleConditionEvent.violated(type, "허용 목록에 없다: " + entry)));
+              }
+
+              @Override
+              public void finish(ConditionEvents events) {
+                sharedAllowlist.stream()
+                    .filter(entry -> !present.contains(entry))
+                    .sorted()
+                    .forEach(
+                        entry ->
+                            events.add(
+                                SimpleConditionEvent.violated(
+                                    entry, "허용 목록에 있지만 코드에 없다: " + entry)));
+              }
+            });
+  }
+
+  /** 한 클래스가 허용 목록에 차지하는 항목들. 공유 모듈 밖이면 없다. */
+  private Stream<String> sharedEntries(JavaClass type) {
+    Optional<String> module = moduleOf(type).filter(SHARED_CALLS::containsKey);
+    if (module.isEmpty()) {
+      return Stream.empty();
+    }
+    String className = relativeName(type.getName());
+    if (!LISTED_SHARED_MODULES.contains(module.get())) {
+      return Stream.of(className);
+    }
+    Stream<String> members =
+        type.getMembers().stream()
+            .filter(member -> member.getModifiers().contains(JavaModifier.PUBLIC))
+            .filter(member -> !member.getModifiers().contains(JavaModifier.SYNTHETIC))
+            .filter(member -> !isCompilerGenerated(type, member))
+            .map(member -> relativeName(member.getFullName()));
+    return Stream.concat(Stream.of(className), members);
+  }
+
+  private static boolean isCompilerGenerated(JavaClass type, JavaMember member) {
+    String name = member.getName();
+    boolean objectMethod =
+        member instanceof JavaMethod
+            && (name.equals("equals") || name.equals("hashCode") || name.equals("toString"));
+    boolean enumMethod =
+        type.isEnum() && member instanceof JavaMethod && (name.equals("values") || name.equals("valueOf"));
+    boolean enumConstant = type.isEnum() && member instanceof JavaField field && field.getRawType().equals(type);
+    return (objectMethod && type.isAssignableTo("java.lang.Record")) || enumMethod || enumConstant;
+  }
+
+  private String relativeName(String fullName) {
+    return fullName.replace(root + ".", "");
+  }
+
+  private static boolean hasAnnotation(JavaClass type, String annotation) {
+    return type.isAnnotatedWith(annotation) || type.isMetaAnnotatedWith(annotation);
+  }
+
   // ---- 도움 함수 ----
 
   private static ArchCondition<JavaClass> condition(
@@ -507,7 +696,7 @@ final class CommerceArchitectureRules {
   }
 
   private static boolean isKnownModule(String module) {
-    return COMMON.equals(module) || ALLOWED_CALLS.containsKey(module);
+    return SHARED_CALLS.containsKey(module) || ALLOWED_CALLS.containsKey(module);
   }
 
   /** 같은 모듈의 클래스인데 공개 API 패키지 밖에 있다. */

@@ -26,8 +26,8 @@ class CommerceArchitectureTest {
           .importPackages(COMMERCE_ROOT);
 
   @TestFactory
-  Stream<DynamicTest> R0_06_9_실제_코드는_모든_구조_규칙을_통과한다() {
-    return new CommerceArchitectureRules(COMMERCE_ROOT)
+  Stream<DynamicTest> R0_06_9_실제_코드는_모든_구조_규칙을_통과한다() throws IOException {
+    return new CommerceArchitectureRules(COMMERCE_ROOT, sharedAllowlist())
         .all().stream()
             .map(
                 rule ->
@@ -40,7 +40,7 @@ class CommerceArchitectureTest {
    * 잘못 지으면 규칙이 그 모듈을 검사하지 못하고 지나가는 것을 막는다.
    */
   @Test
-  void R0_06_9_모듈_패키지는_B1의_R1_모듈과_common이다() throws IOException {
+  void R0_06_9_모듈_패키지는_B1의_R1_모듈과_공유_모듈이다() throws IOException {
     Path rootDir = Path.of("src/main/java", COMMERCE_ROOT.replace('.', '/'));
     Set<String> modules;
     try (Stream<Path> children = Files.list(rootDir)) {
@@ -54,10 +54,21 @@ class CommerceArchitectureTest {
     Set<String> expected =
         Stream.concat(
                 CommerceArchitectureRules.ALLOWED_CALLS.keySet().stream(),
-                Stream.of(CommerceArchitectureRules.COMMON))
+                CommerceArchitectureRules.SHARED_CALLS.keySet().stream())
             .collect(Collectors.toSet());
     assertThat(modules).isEqualTo(expected);
     assertThat(MAIN_CLASSES).as("실제 코드를 읽어 와야 한다").isNotEmpty();
+  }
+
+  /** 공유 모듈 허용 목록 파일. 주석(#)과 빈 줄은 뺀다. 이 파일을 바꾸려면 단위 시작 때 사용자 승인을 받는다(작업진행.md A3-8). */
+  static Set<String> sharedAllowlist() throws IOException {
+    try (Stream<String> lines =
+        Files.lines(Path.of("src/test/resources/architecture/shared-modules-allowlist.txt"))) {
+      return lines
+          .map(String::strip)
+          .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+          .collect(Collectors.toSet());
+    }
   }
 
   /** 규칙은 commerce 패키지 아래만 검사한다. 그 밖에 둔 업무 코드는 규칙을 피해 우회로가 되므로 두지 않는다. */

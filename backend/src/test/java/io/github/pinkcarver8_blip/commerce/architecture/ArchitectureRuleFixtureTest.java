@@ -6,6 +6,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicTest;
@@ -20,11 +21,30 @@ class ArchitectureRuleFixtureTest {
 
   private static final String FIXTURE = "io.github.pinkcarver8_blip.archfixture";
 
+  /** 허용 예시(archfixture.ok)의 공유 모듈 허용 목록. 실제 목록은 src/test/resources/architecture에 있다. */
+  private static final Set<String> OK_ALLOWLIST =
+      Set.of(
+          "money.Money",
+          "money.Money.<init>(long)",
+          "money.Money.won()",
+          "money.Money.of(long)",
+          "money.Money.plus(money.Money)",
+          "identity.CustomerPrincipal",
+          "identity.CustomerPrincipal.<init>(long)",
+          "identity.CustomerPrincipal.memberId()",
+          "error.ErrorCode",
+          "error.ErrorCode.code()",
+          "platform.WebConfig");
+
+  /** s12의 허용 목록. shippingFee는 일부러 빼고, 코드에 없는 money.Gone을 일부러 넣었다. */
+  private static final Set<String> S12_ALLOWLIST =
+      Set.of("money.Money", "money.Money.<init>(long)", "money.Money.won()", "money.Gone");
+
   @TestFactory
   Stream<DynamicTest> R0_06_허용_예시는_모든_규칙을_통과한다() {
     String root = FIXTURE + ".ok";
     var classes = new ClassFileImporter().importPackages(root);
-    return new CommerceArchitectureRules(root)
+    return new CommerceArchitectureRules(root, OK_ALLOWLIST)
         .all().stream()
             .map(
                 rule ->
@@ -44,9 +64,61 @@ class ArchitectureRuleFixtureTest {
   }
 
   @Test
-  void R0_06_1_common이_모듈에_의존하면_실패한다() {
+  void R0_06_1_공유_모듈이_업무_모듈에_의존하면_실패한다() {
     assertViolation("s01", CommerceArchitectureRules::moduleDependenciesFollowAdr001,
-        "common은 모듈에 의존하지 않는다", "OrderCounter");
+        "공유 모듈 money은 업무 모듈에 의존하지 않는다", "OrderCounter");
+  }
+
+  @Test
+  void R0_06_12_아무_모듈도_platform을_부를_수_없다() {
+    assertViolation("s12", CommerceArchitectureRules::moduleDependenciesFollowAdr001,
+        "platform은 아무도 부를 수 없다", "UsesPlatform");
+  }
+
+  @Test
+  void R0_06_12_공유_모듈끼리는_정해_둔_방향만_부른다() {
+    assertViolation("s12", CommerceArchitectureRules::moduleDependenciesFollowAdr001,
+        "공유 모듈 identity → money 방향은 정해 둔 목록(SHARED_CALLS)에 없다", "UsesMoney");
+    assertViolation("s12", CommerceArchitectureRules::moduleDependenciesFollowAdr001,
+        "공유 모듈 money은 업무 모듈에 의존하지 않는다", "MoneyToOrder");
+  }
+
+  @Test
+  void R0_06_12_common_패키지는_더_이상_없다() {
+    assertViolation("s12", CommerceArchitectureRules::moduleDependenciesFollowAdr001,
+        "목록에 없는 모듈 패키지 'common'", "Junk");
+  }
+
+  @Test
+  void R0_06_12_공유_모듈에는_DB와_업무_처리를_두지_않는다() {
+    Function<CommerceArchitectureRules, ArchRule> rule =
+        CommerceArchitectureRules::sharedModulesStayMinimal;
+    assertViolation("s12", rule, "공유 모듈이 DB 도구를 쓴다", "IdLookup");
+    assertViolation("s12", rule, "업무 처리 부품(@Service·@Repository)", "FeeService");
+    assertViolation("s12", rule, "업무 처리 부품(@Service·@Repository)", "PlatformService");
+    assertViolation("s12", rule, "@Transactional", "ErrorLog");
+    assertViolation("s12", rule, "Spring 부품(@Component 계열)", "IdBean");
+    assertViolation("s12", rule, "정적 함수는 자기 타입을 만드는 함수만", "Money.shippingFee(long)");
+    // platform의 @Configuration은 허용된다.
+    assertThat(evaluate("s12", rule).getFailureReport().getDetails())
+        .noneMatch(line -> line.contains("WebConfig"));
+  }
+
+  @Test
+  void R0_06_12_공유_모듈은_허용_목록과_같아야_한다() {
+    String root = FIXTURE + ".s12";
+    EvaluationResult result =
+        new CommerceArchitectureRules(root, S12_ALLOWLIST)
+            .sharedModulesMatchAllowlist()
+            .evaluate(new ClassFileImporter().importPackages(root));
+    List<String> details = result.getFailureReport().getDetails();
+    assertThat(details).anyMatch(line -> line.contains("허용 목록에 없다: money.Money.shippingFee(long)"));
+    assertThat(details).anyMatch(line -> line.contains("허용 목록에 없다: money.FeeService"));
+    assertThat(details).anyMatch(line -> line.contains("허용 목록에 없다: platform.PlatformService"));
+    assertThat(details).anyMatch(line -> line.contains("허용 목록에 있지만 코드에 없다: money.Gone"));
+    // 목록에 있는 것과 record가 스스로 만드는 equals·hashCode·toString은 실패하지 않는다.
+    assertThat(details).noneMatch(line -> line.contains("허용 목록에 없다: money.Money.won()"));
+    assertThat(details).noneMatch(line -> line.contains("money.Money.toString()"));
   }
 
   @Test
