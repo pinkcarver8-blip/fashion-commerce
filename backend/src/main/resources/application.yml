@@ -3,7 +3,8 @@ spring:
   application:
     name: commerce
   datasource:
-    url: ${DB_URL}
+    # 연결 옵션(암호화 필수, 연결 시간대 UTC)은 여기 한 곳에만 둔다. 실행 환경은 주소·이름만 넘긴다.
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?sslMode=REQUIRED&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:

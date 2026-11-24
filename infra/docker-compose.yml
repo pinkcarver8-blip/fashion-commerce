@@ -45,7 +45,8 @@ services:
   backend:
     build: ../backend
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/commerce?sslMode=REQUIRED&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+      DB_HOST: mysql
+      DB_NAME: commerce
       DB_USERNAME: commerce
       DB_PASSWORD: ${MYSQL_PASSWORD:?infra/.env에 MYSQL_PASSWORD가 없다}
       REDIS_HOST: redis
