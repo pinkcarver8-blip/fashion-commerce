@@ -3,7 +3,9 @@
 
 // 빌드 플러그인도 잠금 파일(buildscript-gradle.lockfile)에 적힌 버전만 쓴다.
 buildscript {
+	// 일반 부품은 Maven Central에서 바로 받고, 플러그인 표지만 플러그인 포털에서 받는다(포털을 거치면 요청이 늘어 CI에서 429가 났다, R0-08).
 	repositories {
+		mavenCentral()
 		gradlePluginPortal()
 	}
 	configurations.classpath {
