@@ -100,7 +100,7 @@
   - `claim → payment` 행의 "멱등키 `cancel-{cancelRequestId}`"는 ADR-006b의 `pg_cancel` 기록 ID(`cancel-{pg_cancel uid}`)로 읽는다. claim의 취소 요청 기록은 요청 시각·사유를 담고, PG 키와 결과는 payment의 `pg_cancel`이 담는다.
   - 같은 행의 "(E48)"은 "(E49)"의 잘못이다. E48은 `CONFIRMING` 직후 서버 종료, E49가 취소의 타임아웃·실패다.
   - 검토한 대안 표의 Spring Modulith 기각 이유 중 "`@Setter` 금지에 ArchUnit이 필요하다"는 틀렸다. `@Setter`는 컴파일 뒤에 남지 않아 `lombok.config`로 막는다(ADR-010 보충). QueryDSL 범위와 돈 타입 검사에는 여전히 ArchUnit이 필요하므로 결정은 그대로다.
-- **2026-11-24**(근거: R0-06, 이슈 #53. 패키지 이름은 "제안"이고 R0-06 최종 보고에서 승인받는다)
+- **2026-11-24**(근거: R0-06, 이슈 #53. 패키지 이름, 추가 검사는 2026-11-24 R0-06 최종 보고에서 사용자 승인. "설정 클래스 위치"는 답을 기다리는 중)
   - **패키지**: 모듈은 `io.github.pinkcarver8_blip.commerce.<모듈>`, 공개 API는 `<모듈>.api`, 공통 코드는 `common`(어떤 모듈에도 의존하지 않는다). R1 모듈 9개(catalog, inventory, cart, order, payment, shipping, claim, member, admin)만 만들었다. R2b 이후 모듈은 도입할 때 이 표를 확인하고 규칙의 허용 목록에 더한다. 업무 코드는 모두 `commerce` 아래에 둔다(밖에 두면 규칙을 피하는 우회로가 되므로 시험으로 막는다).
   - **설정 클래스 위치**: 여러 모듈에 걸친 설정(보안 필터 체인 둘, 전역 오류 처리, Jackson·시간대 설정)은 `common` 아래에 두고 어떤 모듈에도 의존하지 않게 쓴다. 한 모듈에만 필요한 설정은 그 모듈 안에 둔다. 루트 패키지에는 애플리케이션 시작 클래스만 둔다. 규칙이 `config` 같은 새 최상위 패키지를 "목록에 없는 모듈"로 막기 때문에 미리 정한다(R1-01 전에 필요).
   - **강제 칸의 "예정(R0-06)"을 구현했다**: `backend/src/test/java/io/github/pinkcarver8_blip/commerce/architecture/CommerceArchitectureRules.java`. 표에 없는 방향, 공개 API가 아닌 클래스 사용, 순환, 관리자 컨트롤러 위치가 걸린다. 더해서 ① 목록에 없는 모듈 패키지, ② 공개 API가 같은 모듈의 내부 타입(엔티티 등)을 매개변수·반환 타입으로 드러내는 것, ③ admin 밖에서 `/api/{변수}`·`/api/admi?`처럼 관리자 경로와 겹칠 수 있는 패턴을 여는 것도 실패로 잡는다. 관리자 컨트롤러의 클래스 경로는 보안 설정(ADR-008)과 같게 정확히 `/api/admin` 아래여야 한다(`/api/admins`는 실패). 상위 클래스·인터페이스에 단 경로와 상속한 타입·`throws`로 드러낸 내부 타입도 본다(독립 검토 지적 반영).
