@@ -1,0 +1,42 @@
+# 알려진 취약점이 있는 부품을 새로 넣는 PR을 막는다(R0-08 시나리오 13).
+# GitHub는 Gradle 파일을 직접 읽지 못해서, 백엔드 부품 목록을 먼저 올린 뒤 비교한다.
+name: dependency-review
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  gradle-graph:
+    name: gradle-graph
+    runs-on: ubuntu-24.04
+    # 부품 목록 올리기는 GitHub 쓰기 권한이 필요하다. 이 작업에만 준다.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          build-root-directory: backend
+
+  review:
+    name: review
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: gradle-graph
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          fail-on-severity: low
+          retry-on-snapshot-warnings: true

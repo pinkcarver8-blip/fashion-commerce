@@ -19,4 +19,4 @@
 | K11 | 같은 파일, 공유 모듈 허용 목록 | 목록에 있는 함수의 속(계산 내용)을 바꾸는 것은 잡지 못한다. 예: `Money.plus`가 수수료를 더하게 고친다 | 목록은 이름과 매개변수만 본다 | `Money` 단위 시험(R1-06)과 코드 읽기 |
 | K12 | `infra/docker-compose.yml`, ADR-008 | 로그인 제한은 Nginx가 넣은 접속 IP를 믿는다. 백엔드에 Nginx를 거치지 않고 닿는 길이 생기면 IP를 속일 수 있다 | Spring의 기본 신뢰 범위가 사설 IP 대역 전체다 | 백엔드 포트를 밖에 열지 않는다(R0-07). R1-01에서 신뢰 프록시를 web 컨테이너로 좁힌다 |
 | K13 | `frontend/nginx/default.conf` | Nginx가 요청 주소를 정리하지 않고 백엔드에 넘긴다(예: `/api/..;/x`). 지금은 Spring이 막는다(404) | 주소를 변수로 넘기는 설정(백엔드가 늦게 떠도 Nginx가 뜨게) | R1-03 시험으로 `/api` 밖으로 새지 않음을 확인한다 |
-
+| K14 | `backend/gradle/verification-metadata.xml`, Dependabot | Dependabot의 백엔드 업데이트 PR은 지문 목록을 못 고쳐 CI가 늘 실패한다 | Dependabot은 Gradle을 실행하지 못한다(관련 공개 보고 다수) | AI가 목록을 다시 만들어 따로 PR을 낸다(A5-12). 이 작업을 자동화할지는 Dependabot PR이 실제로 쌓이면 정한다 |

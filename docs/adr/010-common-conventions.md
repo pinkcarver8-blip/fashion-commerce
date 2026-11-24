@@ -90,3 +90,8 @@
   - pnpm 기본 보호: 공개 1일(1440분) 미만 판 설치 금지, 의존성 설치 스크립트 차단, 이상한 경로 하위 패키지 차단이 기본으로 켜져 있다. 11과 12가 같다(pnpm 공식 문서 pnpm.io/settings·supply-chain-security, 11.0 릴리스 노트, 2026-11-24 확인).
   - Spring Initializr 기본 빌드 형식은 `gradle-project`(Groovy DSL)다(start.spring.io 메타데이터, 2026-11-24 확인).
   - pnpm은 사용자 결정으로 12를 쓴다(작업진행.md A1·A5-12). 캐시는 Redis 8이다(A1).
+- **2026-11-24·25**(근거: R0-08, 이슈 #59): "강제" 칸의 "예정(R0-08, CI)"을 구현했다.
+  - 형식 검사: 백엔드 Spotless + google-java-format 1.36.1(AOSP), 화면 Prettier + ESLint. 모든 PR에서 돈다(`.github/workflows/ci.yml`).
+  - 시간대 확인 시험(`TimeZoneConfigurationTest`): DB 서버를 일부러 서울 시간(+09:00)으로 띄우고, JVM·DB 연결·Hibernate·JSON이 UTC인지 본다. DB 연결 옵션(암호화 필수, 연결 시간대 UTC)은 `application.yml` 한 곳으로 모아 시험과 실행이 같은 틀을 쓴다. 네 번째 컨테이너 시간대는 CI `stack` 작업이 mysql·redis·backend 컨테이너의 `TZ`와 백엔드 JVM 시간대를 확인한다.
+  - 공급망 검사: 고정 설치, wrapper 변조 검사, Actions SHA 고정 검사, pnpm 설정 약화 검사, 부품 지문 확인(작업진행.md A5-12).
+  - R0-08 시작 확인: Spring Boot 4.1.3이 4.1 최신판이다. 열린 회귀 보고 1건(불투명 토큰 검사, #50479)은 우리가 쓰지 않는 로그인 방식이라 판을 바꾸지 않는다(2026-11-25 GitHub 확인).

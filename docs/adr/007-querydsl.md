@@ -62,3 +62,4 @@
   - **주문·결제 시도의 상태 전이**: 주문 행을 잠근 뒤 엔티티의 도메인 메서드로 바꾼다(ADR-004·006a). 같은 트랜잭션에서 다른 행(재예약 등)도 바꿔야 하기 때문이다.
   - 어느 쪽도 QueryDSL을 쓰지 않는다는 이 ADR의 결정은 그대로다.
 - **2026-11-24**(근거: R0-06, 이슈 #53. 패키지 이름은 2026-11-24 R0-06 최종 보고에서 사용자 승인): 조회 전용 클래스는 `<모듈>.query` 패키지에 둔다. 강제 칸의 "예정(R0-06)"을 구현했다(`backend/src/test/java/io/github/pinkcarver8_blip/commerce/architecture/CommerceArchitectureRules.java`의 `queryDslOnlyInQueryPackages`·`noQueryDslWrites`). 빌드가 만드는 Q클래스는 "이름이 Q + X이고 QueryDSL `Path`를 구현하며, 같은 패키지에 JPA 표시(`@Entity`·`@Embeddable`·`@MappedSuperclass`)가 붙은 X가 있는 클래스"로 가려 뺀다. 이름만 Q로 지은 손 클래스는 빠지지 않는다(독립 검토 지적 반영). 쓰기는 `DMLClause` 계열 사용과 `JPQLQueryFactory`의 `update`·`delete`·`insert` 호출을 모두 막는다(`query` 패키지 안에서도).
+- **2026-11-25**(근거: R0-08): "강제" 칸의 "예정(R0-08, CI)"은 CI `backend` 작업의 `./gradlew build`가 맡는다(Q클래스가 안 만들어지면 컴파일 실패). QueryDSL 본 코드 설정은 R0-07에서 옮겼다.

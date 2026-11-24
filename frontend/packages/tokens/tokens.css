@@ -32,7 +32,8 @@
   --space-8: 32px;
 
   /* 글자 */
-  --font-family-base: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-family-base:
+    system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-size-sm: 13px;
   --font-size-md: 15px;
   --font-size-lg: 18px;
