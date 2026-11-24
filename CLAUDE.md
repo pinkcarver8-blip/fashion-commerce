@@ -41,7 +41,8 @@
 | `.claude/settings.json` | AI 거부 규칙(비밀값 읽기, 강제 push). 이유와 한계는 작업진행.md A5-10 | 짧음 | 고칠 때만 |
 | `.claude/rules/` | 영역 규칙(§8). 파일마다 적용 경로가 있어 그 경로의 파일을 만질 때 자동으로 읽힌다 | 짧음 | 자동 |
 | `.github/` | 이슈 양식(`ISSUE_TEMPLATE/task.yml`), PR 양식(AI 기록 칸) | 짧음 | 이슈·PR을 쓸 때 |
-| `docs/` | `adr/`(ADR 양식·목록, 규칙은 작업진행.md A7), `interview/`(ADR별 면접 꼬리 질문), `reports/`(R0 확인·빌드 보고서), `ai/review-checklist.md`(검증 점검표·실수 이력, A3-9) | 보고서만 김 | 해당 작업 때, 보고서는 필요한 절만 |
+| `docs/` | `adr/`(ADR 양식·목록, 규칙은 작업진행.md A7), `interview/`(ADR별 면접 꼬리 질문), `reports/`(R0 확인·빌드 보고서), `db/erd.md`(ERD 초안), `known-issues.md`(미확정·임시방편 목록, A7), `ai/review-checklist.md`(검증 점검표·실수 이력, A3-9) | 보고서만 김 | 해당 작업 때, 보고서는 필요한 절만 |
+| `backend/` | Spring Boot 백엔드(R0-06). 모듈 패키지는 `src/main/java/io/github/pinkcarver8_blip/commerce/<모듈>/`, 구조 규칙(ArchUnit)은 `src/test/.../commerce/architecture/` | — | 백엔드 작업 때 |
 | `tools/` | `doc-check/`(문서 검사 스크립트, A3-9), `pg-stub/`(R0-03 실측 응답), `toss-probe/`(R0-03 검증 도구), `querydsl-smoke/`(R0-04 시험 프로젝트) | — | 해당 작업 때만 |
 
 관계: `기획근거/`(근거) → `기획서.md`(왜·범위) → `작업진행.md`(무엇을, 어떤 규칙으로) → `진행현황.md`(실행 상태).
@@ -174,4 +175,4 @@
 | `frontend.md` | `frontend/**` | A2, A5-9, A8 |
 | `supply-chain.md` | `.github/**`, Gradle·pnpm 파일 | A5-12 |
 
-실제 패키지 경로는 R0-06에서 정한다. 그때 규칙 파일의 `paths`가 맞는지 확인한다.
+패키지 경로는 `backend/src/main/java/io/github/pinkcarver8_blip/commerce/<모듈>/`이다(R0-06). 규칙 파일의 `paths`가 이 경로에 맞는 것을 확인했다(2026-11-24).

@@ -81,4 +81,8 @@
   - JPA 엔티티에는 `@EqualsAndHashCode`·`@ToString`도 쓰지 않는다. 지연 로딩·연관관계 때문에 버그가 나기 쉽다(Thorben Janssen, "Lombok & Hibernate: How to Avoid Common Pitfalls", 2026-11-24 확인). 이 두 어노테이션은 `lombok.config`로 전체 금지하면 DTO가 아닌 일반 클래스에도 막히므로, 엔티티(`@Entity`)에서만 ArchUnit으로 막을 수 있는지 R0-06에서 확인한다. 소스에만 남는 어노테이션이라 ArchUnit으로 못 잡으면 리뷰로 막는다.
   - 공급망 대책은 작업진행.md A5-12의 "Lombok 대책".
   - 확인한 것(2026-11-24): Lombok에 붙은 CVE는 찾지 못했다(검색 결과가 오래돼 최신은 R0-08의 Dependabot으로 본다). Lombok 공식 보안 정책은 "컴파일할 때만 동작하고 서버·배포물에는 필요 없다"고 적는다.
-
+- **2026-11-24**(근거: R0-06, 이슈 #53, 사용자 결정 "돈 필드 규칙은 추천대로")
+  - **돈 필드를 가려내는 방법**: 가려내지 않는다. 백엔드 코드 전체에서 `double`·`float`·`Double`·`Float`·`BigDecimal`을 필드·매개변수·반환 타입·호출(예: `Math.round(double)`, `BigDecimal.valueOf`)에 쓰면 실패한다. 예외는 `common.AllowDecimal(reason)` 표시를 단 멤버뿐이고, 그 값은 표시를 단 클래스 안에서만 쓸 수 있다(다른 클래스가 받아 쓰려면 그쪽도 표시가 필요하다). 못 잡는 것: 메서드 호출 없이 계산식 안에서만 쓰는 소수(예: `(long) (price * 0.9)`). 리뷰로 막는다(`docs/known-issues.md`).
+  - **`lombok.config` 시험 결과**: `@Setter`·`@Data`를 쓰면 컴파일이 실패하고 `@Getter`는 통과한다(`LombokConfigTest`, 실제 `lombok.config`로 컴파일). 설정 줄을 지우면 이 시험이 실패하는 것도 확인했다(역검사). `config.stopBubbling = true`를 두고, `src` 아래에 다른 `lombok.config`가 있으면 실패한다.
+  - **엔티티 `@EqualsAndHashCode`·`@ToString`은 ArchUnit으로 잡힌다**: 두 표시는 컴파일 뒤에 남지 않지만, Lombok이 만든 메서드에 붙이는 `@lombok.Generated`는 클래스 파일에 남는다(1.18.48에서 바이트코드로 확인). `@Entity`·`@MappedSuperclass`의 `equals`·`hashCode`·`toString`에 이 표시가 있으면 실패한다. 1.18.48은 설정이 없어도 이 표시를 붙이지만, `lombok.addLombokGeneratedAnnotation = true`를 명시했고 `false`로 바꾸면 시험이 실패한다(역검사). 손으로 쓴 ID 기준 `equals`는 허용한다.
+  - **Lombok 버전**: 1.18.48(2026-09-01 공개, Spring Boot 4.1.3이 관리하는 버전). 잠금 파일에 고정했고, 실행 클래스패스와 bootJar에 들어가지 않는 것을 확인했다.

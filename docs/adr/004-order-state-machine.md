@@ -87,3 +87,6 @@
 - [x] 기획서 §6-3: 상태 그림에서 `CREATED` 제거, "상태 이름과 소속은 ADR에서 확정" 문구 정리 — 기획서 본문은 아직 고치지 않았다. v0.3(R1 종료)에서 고치고, 그때까지 작업진행.md E3 "주문 모델·상태·재고·복구" 행이 기준이다.
 - [x] 작업진행.md B3 그림, B6 2번의 취소 기록 역할(claim은 요청 시각·사유, PG 키·결과는 payment), E3 행(2026-11-24 반영)
 - [x] `.claude/rules/state-machine.md`: 필요하면 "전이는 주문 행 잠금 후 도메인 메서드로만" 한 줄(2026-11-24 반영)
+
+## 보충 (작업진행.md A7 보충 규칙. 결정은 바꾸지 않고 강제 수단을 밝힌다)
+- **2026-11-24**(근거: R0-06, 이슈 #53): "`Order` 밖에서 상태 필드를 쓰지 않는다" 규칙을 만들었다(`backend/src/test/java/io/github/pinkcarver8_blip/commerce/architecture/CommerceArchitectureRules.java`의 `orderStatusWrittenOnlyByOrder`). order 모듈 `Order`의 `OrderStatus` 타입 필드를 대상으로 한다. `Order`의 공개 메서드가 아무 상태나 받아 바꾸는 것은 이 규칙으로 못 잡으므로, 전이표 검사(R1-08 단위 테스트)와 리뷰로 막는다. `@Setter`·`@Data`는 `lombok.config`로 컴파일에서 막히는 것을 시험으로 확인했다(ADR-010 보충).
