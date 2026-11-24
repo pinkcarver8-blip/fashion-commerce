@@ -100,3 +100,19 @@
   - `claim → payment` 행의 "멱등키 `cancel-{cancelRequestId}`"는 ADR-006b의 `pg_cancel` 기록 ID(`cancel-{pg_cancel uid}`)로 읽는다. claim의 취소 요청 기록은 요청 시각·사유를 담고, PG 키와 결과는 payment의 `pg_cancel`이 담는다.
   - 같은 행의 "(E48)"은 "(E49)"의 잘못이다. E48은 `CONFIRMING` 직후 서버 종료, E49가 취소의 타임아웃·실패다.
   - 검토한 대안 표의 Spring Modulith 기각 이유 중 "`@Setter` 금지에 ArchUnit이 필요하다"는 틀렸다. `@Setter`는 컴파일 뒤에 남지 않아 `lombok.config`로 막는다(ADR-010 보충). QueryDSL 범위와 돈 타입 검사에는 여전히 ArchUnit이 필요하므로 결정은 그대로다.
+- **2026-11-24**(근거: R0-06, 이슈 #53. 패키지 이름, 추가 검사, 공유 모듈은 2026-11-24 R0-06 최종 보고에서 사용자 승인. 공유 모듈은 "번거롭더라도 확실히 나누는 쪽"이라는 사용자 기준으로 `common` 하나를 대신한다)
+  - **패키지**: 모듈은 `io.github.pinkcarver8_blip.commerce.<모듈>`, 공개 API는 `<모듈>.api`. R1 모듈 9개(catalog, inventory, cart, order, payment, shipping, claim, member, admin)만 만들었다. R2b 이후 모듈은 도입할 때 이 표를 확인하고 규칙의 허용 목록에 더한다. 업무 코드는 모두 `commerce` 아래에 둔다(밖에 두면 규칙을 피하는 우회로가 되므로 시험으로 막는다).
+  - **공유 모듈**: 업무 모듈이 같이 쓰는 코드는 `common` 같은 공통 폴더 하나에 두지 않고, 이름과 할 일이 정해진 작은 공유 모듈 5개에 둔다. 공통 폴더는 모든 모듈이 부를 수 있어서, 업무 규칙(예: 배송비 계산)을 옮겨 놓으면 위 호출 표를 피하는 뒷문이 되기 때문이다.
+
+| 공유 모듈 | 담는 것 | 부를 수 있는 쪽 | 이 모듈이 부르는 것 |
+|---|---|---|---|
+| `money` | 금액 값(`Money`), 소수 예외 표시(`AllowDecimal`) | 모든 업무 모듈 | 없음 |
+| `id` | 외부 ID(UUIDv4) 생성 | 모든 업무 모듈 | 없음 |
+| `error` | 오류 응답 형식과 오류 코드의 틀. 실제 코드 목록은 각 업무 모듈 | 모든 업무 모듈 | 없음 |
+| `identity` | 로그인한 사람 정보(고객·관리자 주체, ADR-008 결정 6) | 모든 업무 모듈 | 없음 |
+| `platform` | 앱을 돌리는 설정: 두 필터 체인(ADR-008), 전역 오류 처리기, 시간대·JSON 설정 | **없음** | `identity`, `error` |
+
+  - **공유 모듈 규칙**(검사: `sharedModulesStayMinimal`·`sharedModulesMatchAllowlist`): ① DB 도구, `@Service`·`@Repository`·`@Transactional` 금지. ② `money`·`id`·`error`·`identity`는 Spring 부품(`@Component` 계열)이 아니고, 정적 함수는 자기 타입을 만드는 것만 둔다(`Money.of`는 되고 `Money.fee`는 안 된다). ③ 클래스와 공개 멤버는 `backend/src/test/resources/architecture/shared-modules-allowlist.txt`와 같아야 한다(`platform`은 클래스만). 이 목록을 바꾸는 일은 단위를 시작할 때 사용자 승인을 받는다(작업진행.md A3-8). 한 모듈에만 필요한 설정은 그 모듈 안에 두고, 루트 패키지에는 애플리케이션 시작 클래스만 둔다.
+  - **공유 모듈이 못 막는 것**: 목록에 있는 함수의 속을 바꾸는 것(예: `Money.plus`가 수수료를 더하게 고침). `Money` 단위 시험과 코드 읽기로 막는다(`docs/known-issues.md` K11). 회원·관리자 모듈의 토큰 발급이 `platform`을 부르지 않고 되는지(Spring Security의 `JwtEncoder` 주입)는 R1-01에서 확인한다(작업진행.md E4-2).
+  - **강제 칸의 "예정(R0-06)"을 구현했다**: `backend/src/test/java/io/github/pinkcarver8_blip/commerce/architecture/CommerceArchitectureRules.java`. 표에 없는 방향, 공개 API가 아닌 클래스 사용, 순환, 관리자 컨트롤러 위치가 걸린다. 더해서 ① 목록에 없는 모듈 패키지, ② 공개 API가 같은 모듈의 내부 타입(엔티티 등)을 매개변수·반환 타입으로 드러내는 것, ③ admin 밖에서 `/api/{변수}`·`/api/admi?`처럼 관리자 경로와 겹칠 수 있는 패턴을 여는 것도 실패로 잡는다. 관리자 컨트롤러의 클래스 경로는 보안 설정(ADR-008)과 같게 정확히 `/api/admin` 아래여야 한다(`/api/admins`는 실패). 상위 클래스·인터페이스에 단 경로와 상속한 타입·`throws`로 드러낸 내부 타입도 본다(독립 검토 지적 반영).
+  - **못 잡는 것**: 리플렉션, 함수형 라우팅(`RouterFunction`)으로 연 경로, 컴파일할 때 값이 박히는 상수(`static final`)와 메서드 호출 없는 형 변환은 의존으로 보이지 않는다. 리뷰로 막는다(`docs/known-issues.md` K2·K3·K7).

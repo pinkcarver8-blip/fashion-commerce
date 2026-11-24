@@ -41,7 +41,8 @@
 | `.claude/settings.json` | AI 거부 규칙(비밀값 읽기, 강제 push). 이유와 한계는 작업진행.md A5-10 | 짧음 | 고칠 때만 |
 | `.claude/rules/` | 영역 규칙(§8). 파일마다 적용 경로가 있어 그 경로의 파일을 만질 때 자동으로 읽힌다 | 짧음 | 자동 |
 | `.github/` | 이슈 양식(`ISSUE_TEMPLATE/task.yml`), PR 양식(AI 기록 칸) | 짧음 | 이슈·PR을 쓸 때 |
-| `docs/` | `adr/`(ADR 양식·목록, 규칙은 작업진행.md A7), `interview/`(ADR별 면접 꼬리 질문), `reports/`(R0 확인·빌드 보고서), `ai/review-checklist.md`(검증 점검표·실수 이력, A3-9) | 보고서만 김 | 해당 작업 때, 보고서는 필요한 절만 |
+| `docs/` | `adr/`(ADR 양식·목록, 규칙은 작업진행.md A7), `interview/`(ADR별 면접 꼬리 질문), `reports/`(R0 확인·빌드 보고서), `db/erd.md`(ERD 초안), `known-issues.md`(미확정·임시방편 목록, A7), `ai/review-checklist.md`(검증 점검표·실수 이력, A3-9), `ai/mistakes.md`(재현 테스트가 있는 AI 코드 오류) | 보고서만 김 | 해당 작업 때, 보고서는 필요한 절만 |
+| `backend/` | Spring Boot 백엔드(R0-06). 모듈 패키지는 `src/main/java/io/github/pinkcarver8_blip/commerce/<모듈>/`, 구조 규칙(ArchUnit)은 `src/test/.../commerce/architecture/` | — | 백엔드 작업 때 |
 | `tools/` | `doc-check/`(문서 검사 스크립트, A3-9), `pg-stub/`(R0-03 실측 응답), `toss-probe/`(R0-03 검증 도구), `querydsl-smoke/`(R0-04 시험 프로젝트) | — | 해당 작업 때만 |
 
 관계: `기획근거/`(근거) → `기획서.md`(왜·범위) → `작업진행.md`(무엇을, 어떤 규칙으로) → `진행현황.md`(실행 상태).
@@ -122,7 +123,7 @@
 
 **결정은 대화에만 두지 않는다.** 사용자가 정한 것은 그 턴 안에 해당 문서(작업진행.md 본문·E3·E4, 또는 기획서)에 반영한다.
 
-**단계가 바뀔 때**(R0-01 착수, 릴리스 시작·종료, 배포 창)는 작업진행.md E4에서 그 조건이 걸린 항목을 확인하고 사용자에게 알린다.
+**단계가 바뀔 때**(R0-01 착수, 릴리스 시작·종료, 배포 창)와 **작업 ID를 시작할 때**는 작업진행.md E4(특히 E4-2의 그 ID 행)에서 조건이 걸린 항목을 확인하고, 이슈의 수용 기준에 넣는다. 사용자에게 물을 것(●)은 단위 시작 때 묻는다.
 
 **저장소를 만든 뒤(R0-01부터)**: 진행 상태의 기준은 GitHub 이슈다(작업진행.md A3-1). 이어하기는 `진행현황.md`의 몇 줄 + 현재 브랜치·`git status`·`git log -5` + 열린 이슈(`gh issue view`)로 한다. 큰 변경 전에는 커밋해 두고(A3-2), 세션을 끝낼 때 작업 중인 변경을 커밋되지 않은 채로 두지 않는다. `진행현황.md`는 로컬 전용이라 커밋하지 않는다. 다만 이 파일을 추적하던 옛 커밋으로 브랜치를 바꾸거나 그런 커밋을 pull하면 git이 이 파일을 덮어쓰거나 지울 수 있으니, 그럴 때는 먼저 복사해 둔다.
 
@@ -173,5 +174,6 @@
 | `tests.md` | 백엔드·프론트 테스트 | A4, A5-7 |
 | `frontend.md` | `frontend/**` | A2, A5-9, A8 |
 | `supply-chain.md` | `.github/**`, Gradle·pnpm 파일 | A5-12 |
+| `shared-modules.md` | 공유 모듈 5개(`money`·`id`·`error`·`identity`·`platform`), 허용 목록 | ADR-001 보충 |
 
-실제 패키지 경로는 R0-06에서 정한다. 그때 규칙 파일의 `paths`가 맞는지 확인한다.
+패키지 경로는 `backend/src/main/java/io/github/pinkcarver8_blip/commerce/<모듈>/`이다(R0-06). 규칙 파일의 `paths`가 이 경로에 맞는 것을 확인했다(2026-11-24).

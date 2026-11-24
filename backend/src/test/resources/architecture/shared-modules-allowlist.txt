@@ -1,0 +1,8 @@
+# 공유 모듈 허용 목록 (ADR-001 보충, R0-06)
+# 공유 모듈(money·id·error·identity·platform)에 둘 수 있는 클래스와 공개 멤버를 적는다. 목록과 코드가 다르면 시험이 실패한다.
+# 줄을 더하거나 지우려면 단위를 시작할 때 사용자 승인을 받는다(작업진행.md A3-8). 승인 없이 고치지 않는다.
+# 형식: 클래스는 "모듈.클래스", 공개 멤버는 "모듈.클래스.멤버(매개변수 타입)". platform은 클래스만 적는다.
+# 컴파일러가 만드는 멤버(record의 equals·hashCode·toString, enum의 values·valueOf·상수)는 적지 않는다.
+
+money.AllowDecimal
+money.AllowDecimal.reason()
