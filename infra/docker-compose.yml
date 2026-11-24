@@ -15,7 +15,8 @@ services:
       TZ: UTC
     command: ["--default-time-zone=+00:00"]
     ports:
-      - "127.0.0.1:3306:3306"
+      # 이 컴퓨터의 3306은 따로 설치된 MySQL이 쓸 수 있어 3307로 연다(컨테이너 안은 3306).
+      - "127.0.0.1:3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:

@@ -14,6 +14,9 @@ NAMES = ["MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "REDIS_PASSWORD"]
 
 
 def main() -> int:
+    # Windows 콘솔에서도 한글 안내가 깨지지 않게 한다.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     if ENV_FILE.exists():
         print(f"{ENV_FILE}이 이미 있어 그대로 둔다.")
         return 1
