@@ -75,7 +75,7 @@
 - **2026-11-24**(근거: R0 재검토 이슈 #39, 독립 검토)
   - **`@Setter`·`@Data` 금지의 강제 수단 정정**: "강제" 칸의 "엔티티에 `@Setter`·`@Data`를 쓰면 ArchUnit이 실패한다"는 동작하지 않는다. 두 표시는 `@Retention(RetentionPolicy.SOURCE)`라 컴파일된 클래스에 남지 않고, ArchUnit은 컴파일된 클래스를 읽기 때문이다(Lombok 저장소의 `Setter.java`·`Data.java`, 2026-11-24 확인). 대신 `lombok.config`에 `lombok.setter.flagUsage = error`와 `lombok.data.flagUsage = error`를 두어 컴파일을 실패시킨다(Lombok 공식 문서의 설정 키, 2026-11-24 확인). R0-06에서 실제로 컴파일이 실패하는지 시험한다. 돈 필드 타입 검사는 그대로 ArchUnit으로 한다.
   - **시간대 고정 검사 범위**: "강제" 칸의 테스트는 JVM·JDBC·Jackson 세 곳만 본다. 네 번째인 컨테이너 시간대(`TZ`)는 R0-08 CI의 컨테이너 기동 확인에서 검사한다.
-  - **근거가 없는 문장 두 개**: "pnpm 11의 기본 보호(공개 1일 미만 버전 설치 금지, 설치 스크립트 차단)"와 "Groovy는 Spring Initializr 기본값"은 출처와 확인 날짜를 적지 않았다(미확인). R0-07에서 pnpm 공식 문서와 Initializr로 확인한다(작업진행.md E4-2). 확인 결과가 다르면 이 보충에 적고, 결정에 영향이 있으면 새 ADR로 대체한다.
+  - **근거가 없는 문장 두 개**(→ 2026-11-24 R0-07에서 확인, 아래 보충): "pnpm 11의 기본 보호(공개 1일 미만 버전 설치 금지, 설치 스크립트 차단)"와 "Groovy는 Spring Initializr 기본값"은 출처와 확인 날짜를 적지 않았다(미확인). R0-07에서 pnpm 공식 문서와 Initializr로 확인한다(작업진행.md E4-2). 확인 결과가 다르면 이 보충에 적고, 결정에 영향이 있으면 새 ADR로 대체한다.
 - **2026-11-24**(근거: 사용자 결정, 이슈 #51): **Lombok을 쓴다.** 이 ADR의 "엔티티에 `@Setter`·`@Data` 금지" 결정은 그대로이고, 그 금지를 지키는 방법을 정한다.
   - `lombok.config`: `lombok.setter.flagUsage = error`, `lombok.data.flagUsage = error`(컴파일 실패). R0-06에서 실제로 실패하는지 시험한다.
   - JPA 엔티티에는 `@EqualsAndHashCode`·`@ToString`도 쓰지 않는다. 지연 로딩·연관관계 때문에 버그가 나기 쉽다(Thorben Janssen, "Lombok & Hibernate: How to Avoid Common Pitfalls", 2026-11-24 확인). 이 두 어노테이션은 `lombok.config`로 전체 금지하면 DTO가 아닌 일반 클래스에도 막히므로, 엔티티(`@Entity`)에서만 ArchUnit으로 막을 수 있는지 R0-06에서 확인한다. 소스에만 남는 어노테이션이라 ArchUnit으로 못 잡으면 리뷰로 막는다.
@@ -86,3 +86,7 @@
   - **`lombok.config` 시험 결과**: `@Setter`·`@Data`를 쓰면 컴파일이 실패하고 `@Getter`는 통과한다(`LombokConfigTest`, 실제 `lombok.config`로 컴파일). 설정 줄을 지우면 이 시험이 실패하는 것도 확인했다(역검사). `config.stopBubbling = true`를 두고, `src` 아래에 다른 `lombok.config`가 있으면 실패한다.
   - **엔티티 `@EqualsAndHashCode`·`@ToString`은 ArchUnit으로 잡힌다**: 두 표시는 컴파일 뒤에 남지 않지만, Lombok이 만든 메서드에 붙이는 `@lombok.Generated`는 클래스 파일에 남는다(1.18.48에서 바이트코드로 확인). `@Entity`·`@MappedSuperclass`의 `equals`·`hashCode`·`toString`에 이 표시가 있으면 실패한다. 1.18.48은 설정이 없어도 이 표시를 붙이지만, `lombok.addLombokGeneratedAnnotation = true`를 명시했고 `false`로 바꾸면 시험이 실패한다(역검사). 손으로 쓴 ID 기준 `equals`는 허용한다.
   - **Lombok 버전**: 1.18.48(2026-09-01 공개, Spring Boot 4.1.3이 관리하는 버전). 잠금 파일에 고정했고, 실행 클래스패스와 bootJar에 들어가지 않는 것을 확인했다.
+- **2026-11-24**(근거: R0-07, 이슈 #56): 위 "근거가 없는 문장 두 개"를 확인했다. 결정은 그대로다.
+  - pnpm 기본 보호: 공개 1일(1440분) 미만 판 설치 금지, 의존성 설치 스크립트 차단, 이상한 경로 하위 패키지 차단이 기본으로 켜져 있다. 11과 12가 같다(pnpm 공식 문서 pnpm.io/settings·supply-chain-security, 11.0 릴리스 노트, 2026-11-24 확인).
+  - Spring Initializr 기본 빌드 형식은 `gradle-project`(Groovy DSL)다(start.spring.io 메타데이터, 2026-11-24 확인).
+  - pnpm은 사용자 결정으로 12를 쓴다(작업진행.md A1·A5-12). 캐시는 Redis 8이다(A1).

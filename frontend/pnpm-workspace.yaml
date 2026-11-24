@@ -1,0 +1,19 @@
+# 프론트 작업 공간(ADR-009). 공급망 설정은 작업진행.md A5-12.
+packages:
+  - store
+  - admin
+  - packages/*
+
+# 새 판은 공개 7일(10080분)이 지난 것만 받는다(A5-12 "새 판 7일 규칙").
+# 값을 직접 적으면 엄격 모드가 켜져, 조건을 못 맞추면 더 새 판으로 슬쩍 넘어가지 않고 설치가 실패한다.
+minimumReleaseAge: 10080
+
+# 전보다 신뢰 근거(공식 자동 빌드 확인, 출처 기록)가 약해진 판은 받지 않는다.
+# 예외는 정확한 판 번호로만 trustPolicyExclude에 적고 이유를 남긴다(이름 전체를 예외로 두지 않는다).
+trustPolicy: no-downgrade
+
+# 의존성의 설치 스크립트 차단(strictDepBuilds)과 이상한 경로 하위 패키지 차단(blockExoticSubdeps)은
+# pnpm 기본값이 켜짐이라 따로 적지 않는다. 끄지 않는다(A5-12).
+
+# package.json에 범위(^) 없이 정확한 판 번호로 적는다.
+savePrefix: ''

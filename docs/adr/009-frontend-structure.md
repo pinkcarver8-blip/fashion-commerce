@@ -76,3 +76,6 @@
 - [x] 작업진행.md A1 "스타일 방식은 미정" → "임시 CSS Modules, 디자인 확정 때 재검토"(2026-11-24 반영)
 - [x] 작업진행.md E4-1 "스타일 방식" 행의 기본값(2026-11-24 반영)
 - [x] `.claude/rules/frontend.md`: "`ui`는 `api-client`를 import하지 않는다" 한 줄(2026-11-24 반영)
+
+## 보충 (작업진행.md A7 보충 규칙. 결정은 바꾸지 않고 확인 결과를 적는다)
+- **2026-11-24**(근거: R0-07, 이슈 #56): 결정 3의 "생성 도구 버전과 실재 여부는 R0-07에서 확인"을 확인했다. `openapi-typescript`는 npm에 있는 패키지다(최신 7.13.0, 2026-02-11 공개, 저장소 github.com/openapi-ts/openapi-typescript). 실제로 들이는 것은 API가 생기는 R1에서 한다. 결정 4의 개발 프록시는 `store`(5173)·`admin`(5174)의 Vite 설정에, 배포 형태(두 앱 정적 빌드 + Nginx, `/api`를 백엔드로)는 `frontend/Dockerfile`·`frontend/nginx/default.conf`에 만들었다(고객 앱 3000, 관리자 앱 3001).

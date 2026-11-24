@@ -1,0 +1,10 @@
+{
+  "name": "@commerce/api-client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./store": "./src/store/index.ts",
+    "./admin": "./src/admin/index.ts"
+  }
+}

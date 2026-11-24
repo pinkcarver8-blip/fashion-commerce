@@ -1,0 +1,29 @@
+.page {
+  min-height: 100vh;
+  margin: 0;
+  padding: var(--space-6) var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+}
+
+.banner {
+  margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-4)) var(--space-6);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-banner-bg);
+  color: var(--color-banner-text);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xl);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+}
