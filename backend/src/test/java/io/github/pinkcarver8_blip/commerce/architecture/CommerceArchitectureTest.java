@@ -3,6 +3,7 @@ package io.github.pinkcarver8_blip.commerce.architecture;
 import static io.github.pinkcarver8_blip.commerce.architecture.CommerceArchitectureRules.COMMERCE_ROOT;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -57,5 +58,15 @@ class CommerceArchitectureTest {
             .collect(Collectors.toSet());
     assertThat(modules).isEqualTo(expected);
     assertThat(MAIN_CLASSES).as("실제 코드를 읽어 와야 한다").isNotEmpty();
+  }
+
+  /** 규칙은 commerce 패키지 아래만 검사한다. 그 밖에 둔 업무 코드는 규칙을 피해 우회로가 되므로 두지 않는다. */
+  @Test
+  void R0_06_9_모든_실제_코드는_commerce_패키지_아래에_있다() {
+    JavaClasses everything =
+        new ClassFileImporter().importPath(Path.of("build/classes/java/main"));
+    assertThat(everything).isNotEmpty();
+    assertThat(everything.stream().map(JavaClass::getName))
+        .allMatch(name -> name.startsWith(COMMERCE_ROOT + "."));
   }
 }

@@ -66,4 +66,4 @@
 - [x] CLAUDE.md §5: "ADR-004~006을 정할 때"를 "ADR-003~006"으로 고쳤다(2026-11-24, 사용자 지시 "문제 있는 것은 모두 고치고 가"에 따라 승인 전에 반영. 문서 오류 정정이라 결정 변경이 아니다)
 
 ## 보충 (작업진행.md A7 보충 규칙. 결정은 바꾸지 않고 강제 수단을 밝힌다)
-- **2026-11-24**(근거: R0-06, 이슈 #53): "주문상품 클래스에는 생성자 밖에서 필드를 쓰는 메서드가 없다" 규칙을 만들었다(`backend/src/test/java/io/github/pinkcarver8_blip/commerce/architecture/CommerceArchitectureRules.java`의 `orderItemFieldsWrittenOnlyInConstructor`). order 모듈의 `OrderItem`이라는 이름으로 찾으므로, R1-08에서 클래스 이름이나 모듈이 달라지면 규칙도 고친다(작업진행.md E4-2). 못 잡는 것: 리플렉션, Hibernate 바이트코드 강화를 켤 때 생기는 쓰기(켜지 않는다).
+- **2026-11-24**(근거: R0-06, 이슈 #53): "주문상품 클래스에는 생성자 밖에서 필드를 쓰는 메서드가 없다" 규칙을 만들었다(`backend/src/test/java/io/github/pinkcarver8_blip/commerce/architecture/CommerceArchitectureRules.java`의 `orderItemFieldsWrittenOnlyInConstructor`). 필드 타입도 안에서 값을 바꿀 수 없는 것(기본형, 문자열, enum, record, `Instant`·`LocalDate`·`UUID`, 연관 엔티티)만 허용한다. 목록·배열·일반 객체 필드는 생성자 밖에서 내용을 바꿀 수 있기 때문이다(독립 검토 지적 반영). order 모듈의 `OrderItem`이라는 이름으로 찾으므로, R1-08에서 클래스 이름이나 모듈이 달라지면 규칙도 고친다(작업진행.md E4-2). 못 잡는 것: 리플렉션, Hibernate 바이트코드 강화를 켤 때 생기는 쓰기(켜지 않는다), 안에 목록을 가진 record 필드(`docs/known-issues.md` K6). 값 묶음(`@Embeddable`)은 record로 쓴다.

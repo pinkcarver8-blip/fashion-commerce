@@ -67,7 +67,17 @@ final class CommerceArchitectureRules {
   private static final String ALLOW_DECIMAL = COMMERCE_ROOT + ".common.AllowDecimal";
 
   private static final Set<String> DECIMAL_TYPES =
-      Set.of("double", "float", "java.lang.Double", "java.lang.Float", "java.math.BigDecimal");
+      Set.of(
+          "double",
+          "float",
+          "java.lang.Double",
+          "java.lang.Float",
+          "java.math.BigDecimal",
+          "java.util.OptionalDouble",
+          "java.util.DoubleSummaryStatistics",
+          "java.util.stream.DoubleStream",
+          "java.util.concurrent.atomic.DoubleAdder",
+          "java.util.concurrent.atomic.DoubleAccumulator");
 
   private static final String CONTROLLER = "org.springframework.stereotype.Controller";
   private static final String REQUEST_MAPPING =
@@ -180,16 +190,32 @@ final class CommerceArchitectureRules {
                   if (module.isEmpty() || !isPublicApi(apiClass, module.get())) {
                     return;
                   }
-                  for (JavaMember member : apiClass.getMembers()) {
+                  List<JavaType> supertypes = new ArrayList<>(apiClass.getInterfaces());
+                  apiClass.getSuperclass().ifPresent(supertypes::add);
+                  supertypes.stream()
+                      .flatMap(type -> type.getAllInvolvedRawTypes().stream())
+                      .filter(type -> isInternalOf(type, module.get()))
+                      .distinct()
+                      .forEach(
+                          internal ->
+                              events.add(
+                                  SimpleConditionEvent.violated(
+                                      apiClass,
+                                      apiClass.getName()
+                                          + "가 상속·구현으로 내부 타입 "
+                                          + internal.getName()
+                                          + "을 드러낸다")));
+                  List<JavaMember> members = new ArrayList<>(apiClass.getAllMethods());
+                  members.addAll(apiClass.getAllFields());
+                  members.addAll(apiClass.getConstructors());
+                  for (JavaMember member : members) {
                     if (!member.getModifiers().contains(JavaModifier.PUBLIC)) {
                       continue;
                     }
                     signatureTypes(member)
                         .flatMap(type -> type.getAllInvolvedRawTypes().stream())
                         .map(JavaClass::getBaseComponentType)
-                        .filter(type -> inRoot(type))
-                        .filter(type -> moduleOf(type).equals(module))
-                        .filter(type -> !isPublicApi(type, module.get()))
+                        .filter(type -> isInternalOf(type, module.get()))
                         .distinct()
                         .forEach(
                             internal ->
@@ -205,47 +231,53 @@ final class CommerceArchitectureRules {
   }
 
   /**
-   * 시나리오 4: 관리자 컨트롤러는 admin 모듈에만 있고 경로는 {@code /api/admin}으로 시작한다. admin 밖의 컨트롤러는 관리자 경로나, 관리자 경로와
-   * 겹칠 수 있는 패턴(둘째 칸까지의 {@code {변수}}·{@code *})을 열지 않는다(ADR-001·008).
+   * 시나리오 4: 관리자 컨트롤러는 admin 모듈에만 있고, 클래스 경로는 정확히 {@code /api/admin}이거나 그 아래다. 보안 설정은
+   * {@code /api/admin/**}만 관리자 체인으로 보내므로(ADR-008), {@code /api/admins} 같은 비슷한 경로는 관리자 화면인데 고객 체인에 걸린다.
+   * admin 밖의 클래스·인터페이스는 관리자처럼 보이는 경로({@code /api/admin…})나 관리자 경로와 겹칠 수 있는 패턴(둘째 칸까지의 변수·
+   * {@code *}·{@code ?})을 열지 않는다. Spring은 상위 클래스·인터페이스의 경로 표시도 합쳐 쓰므로 그것까지 본다(ADR-001·008).
    */
   ArchRule adminControllersOnlyInAdmin() {
     return classes()
         .should(
             condition(
                 "관리자 컨트롤러는 admin 모듈에만 있고 /api/admin 경로만 연다",
-                (controller, events) -> {
-                  if (!inRoot(controller) || !isController(controller)) {
+                (type, events) -> {
+                  if (!inRoot(type)) {
                     return;
                   }
-                  List<String> classPaths = mappingPaths(controller);
-                  boolean inAdmin = moduleOf(controller).filter("admin"::equals).isPresent();
+                  boolean controller = isController(type);
+                  List<String> classPaths = hierarchyClassPaths(type);
+                  List<String> methodPaths = hierarchyMethodPaths(type);
+                  if (!controller && classPaths.isEmpty() && methodPaths.isEmpty()) {
+                    return;
+                  }
+                  boolean inAdmin = moduleOf(type).filter("admin"::equals).isPresent();
                   if (inAdmin) {
-                    if (classPaths.isEmpty() || !classPaths.stream().allMatch(this::isAdminPath)) {
+                    if (controller
+                        && (classPaths.isEmpty()
+                            || !classPaths.stream().allMatch(this::isExactAdminPrefix))) {
                       events.add(
                           SimpleConditionEvent.violated(
-                              controller,
+                              type,
                               "admin 모듈의 컨트롤러는 클래스에 /api/admin으로 시작하는 경로를 단다: "
-                                  + controller.getName()
+                                  + type.getName()
                                   + " "
                                   + classPaths));
                     }
                     return;
                   }
-                  for (String path : fullPaths(controller, classPaths)) {
-                    if (isAdminPath(path)) {
+                  for (String path : fullPaths(classPaths, methodPaths)) {
+                    if (looksLikeAdminPath(path)) {
                       events.add(
                           SimpleConditionEvent.violated(
-                              controller,
-                              "관리자 경로를 admin 모듈 밖에서 연다: "
-                                  + controller.getName()
-                                  + " "
-                                  + path));
+                              type,
+                              "관리자 경로를 admin 모듈 밖에서 연다: " + type.getName() + " " + path));
                     } else if (mayOverlapAdminPath(path)) {
                       events.add(
                           SimpleConditionEvent.violated(
-                              controller,
+                              type,
                               "관리자 경로와 겹칠 수 있는 패턴을 admin 모듈 밖에서 연다: "
-                                  + controller.getName()
+                                  + type.getName()
                                   + " "
                                   + path));
                     }
@@ -316,7 +348,8 @@ final class CommerceArchitectureRules {
             condition(
                 "소수 타입(double·float·BigDecimal)을 쓰지 않는다(예외는 @AllowDecimal)",
                 (owner, events) -> {
-                  if (!inRoot(owner)) {
+                  // Q클래스는 엔티티 필드를 따라 만들어지고, 그 필드는 엔티티에서 이미 검사한다.
+                  if (!inRoot(owner) || isQueryDslGenerated(owner)) {
                     return;
                   }
                   for (JavaField field : owner.getFields()) {
@@ -353,13 +386,32 @@ final class CommerceArchitectureRules {
                 }));
   }
 
-  /** 시나리오 7: 주문상품({@code order} 모듈의 {@code OrderItem}) 필드는 그 클래스의 생성자에서만 쓴다(ADR-003). */
+  /**
+   * 시나리오 7: 주문상품({@code order} 모듈의 {@code OrderItem})은 만든 뒤 바뀌지 않는다(ADR-003). 필드는 그 클래스의 생성자에서만 쓰고,
+   * 필드 타입은 안에서 값을 바꿀 수 없는 것(기본형, 문자열, enum, record, 시간·UUID, 연관 엔티티)만 쓴다. 목록·배열·일반 객체 필드는 생성자
+   * 밖에서 내용을 바꿀 수 있어서 막는다.
+   */
   ArchRule orderItemFieldsWrittenOnlyInConstructor() {
     return classes()
         .should(
             condition(
-                "주문상품(OrderItem) 필드는 생성자에서만 쓴다",
+                "주문상품(OrderItem) 필드는 생성자에서만 쓰고, 바꿀 수 없는 타입만 쓴다",
                 (origin, events) -> {
+                  if (isOrderClass(origin, "OrderItem")) {
+                    for (JavaField field : origin.getFields()) {
+                      if (!field.getModifiers().contains(JavaModifier.STATIC)
+                          && !isUnmodifiableFieldType(field.getRawType())) {
+                        events.add(
+                            SimpleConditionEvent.violated(
+                                field,
+                                "주문상품 필드 타입은 내용을 바꿀 수 있다: "
+                                    + field.getFullName()
+                                    + " ("
+                                    + field.getRawType().getName()
+                                    + ")"));
+                      }
+                    }
+                  }
                   for (JavaFieldAccess access : origin.getFieldAccessesFromSelf()) {
                     JavaClass fieldOwner = access.getTargetOwner();
                     if (access.getAccessType() != AccessType.SET || !isOrderClass(fieldOwner, "OrderItem")) {
@@ -458,6 +510,14 @@ final class CommerceArchitectureRules {
     return COMMON.equals(module) || ALLOWED_CALLS.containsKey(module);
   }
 
+  /** 같은 모듈의 클래스인데 공개 API 패키지 밖에 있다. */
+  private boolean isInternalOf(JavaClass type, String module) {
+    JavaClass base = type.getBaseComponentType();
+    return inRoot(base)
+        && moduleOf(base).filter(module::equals).isPresent()
+        && !isPublicApi(base, module);
+  }
+
   private boolean isPublicApi(JavaClass javaClass, String module) {
     return isInPackage(javaClass, root + "." + module + ".api");
   }
@@ -478,9 +538,47 @@ final class CommerceArchitectureRules {
         && moduleOf(javaClass).filter("order"::equals).isPresent();
   }
 
+  private static final Set<String> UNMODIFIABLE_TYPES =
+      Set.of(
+          "java.lang.String",
+          "java.lang.Long",
+          "java.lang.Integer",
+          "java.lang.Short",
+          "java.lang.Byte",
+          "java.lang.Boolean",
+          "java.lang.Character",
+          "java.time.Instant",
+          "java.time.LocalDate",
+          "java.util.UUID");
+
+  private static boolean isUnmodifiableFieldType(JavaClass type) {
+    if (type.isArray()) {
+      return false;
+    }
+    return type.isPrimitive()
+        || UNMODIFIABLE_TYPES.contains(type.getName())
+        || type.isEnum()
+        || type.isAssignableTo("java.lang.Record")
+        || type.isAnnotatedWith("jakarta.persistence.Entity");
+  }
+
+  /**
+   * 빌드가 만드는 Q클래스: 이름이 Q + X이고 QueryDSL {@code Path}를 구현하며, 같은 패키지에 JPA 표시가 붙은 X가 있다. 손으로 만든 Q 이름
+   * 클래스가 규칙을 피하지 못하게 X까지 확인한다.
+   */
   private static boolean isQueryDslGenerated(JavaClass javaClass) {
-    return javaClass.getSimpleName().startsWith("Q")
-        && javaClass.isAssignableTo("com.querydsl.core.types.Path");
+    String name = javaClass.getSimpleName();
+    if (!name.startsWith("Q") || !javaClass.isAssignableTo("com.querydsl.core.types.Path")) {
+      return false;
+    }
+    String source = name.substring(1);
+    return javaClass.getPackage().getClasses().stream()
+        .filter(candidate -> candidate.getSimpleName().equals(source))
+        .anyMatch(
+            candidate ->
+                candidate.isAnnotatedWith("jakarta.persistence.Entity")
+                    || candidate.isAnnotatedWith("jakarta.persistence.Embeddable")
+                    || candidate.isAnnotatedWith("jakarta.persistence.MappedSuperclass"));
   }
 
   private static Stream<JavaType> signatureTypes(JavaMember member) {
@@ -491,13 +589,21 @@ final class CommerceArchitectureRules {
       List<JavaType> types = new ArrayList<>();
       types.add(codeUnit.getReturnType());
       codeUnit.getParameters().forEach(parameter -> types.add(parameter.getType()));
+      types.addAll(codeUnit.getThrowsClause().getTypes());
       return types.stream();
     }
     return Stream.empty();
   }
 
   private static boolean isDecimal(JavaClass type) {
-    return DECIMAL_TYPES.contains(type.getBaseComponentType().getName());
+    JavaClass base = type.getBaseComponentType();
+    String name = base.getName();
+    if (DECIMAL_TYPES.contains(name)) {
+      return true;
+    }
+    // double을 다루는 함수형 타입(DoubleUnaryOperator, ToDoubleFunction 등)
+    return base.getPackageName().equals("java.util.function")
+        && (base.getSimpleName().startsWith("Double") || base.getSimpleName().startsWith("ToDouble"));
   }
 
   private static boolean involvesDecimal(JavaType type) {
@@ -509,11 +615,13 @@ final class CommerceArchitectureRules {
       return true;
     }
     if (access instanceof JavaFieldAccess fieldAccess) {
-      // 예외 표시를 단 필드는 그 클래스 안에서만 쓸 수 있다(예: record 생성자가 자기 필드를 채운다). 다른 클래스가 쓰려면 그쪽도 표시가 필요하다.
-      boolean ownAllowedField =
-          fieldAccess.getOriginOwner().equals(fieldAccess.getTargetOwner())
+      // 예외 표시를 단 필드는 표시 없이 쓸 수 없다. 단, 그 클래스의 생성자는 자기 필드를 채울 수 있다(예: record 생성자).
+      // 표시를 단 메서드는 이 검사까지 오지 않는다(noDecimalTypes에서 건너뛴다).
+      boolean ownConstructorFillsAllowedField =
+          fieldAccess.getOrigin() instanceof JavaConstructor
+              && fieldAccess.getOriginOwner().equals(fieldAccess.getTargetOwner())
               && fieldAccess.getTarget().resolveMember().map(field -> allowsDecimal(field)).orElse(false);
-      return !ownAllowedField && isDecimal(fieldAccess.getTarget().getRawType());
+      return !ownConstructorFillsAllowedField && isDecimal(fieldAccess.getTarget().getRawType());
     }
     if (access.getTarget() instanceof CodeUnitCallTarget target) {
       return isDecimal(target.getRawReturnType())
@@ -553,15 +661,28 @@ final class CommerceArchitectureRules {
     return paths;
   }
 
+  /** 자기 자신과 모든 상위 클래스·인터페이스에 붙은 클래스 경로. */
+  private static List<String> hierarchyClassPaths(JavaClass type) {
+    List<String> paths = new ArrayList<>(mappingPaths(type));
+    type.getAllRawSuperclasses().forEach(superclass -> paths.addAll(mappingPaths(superclass)));
+    type.getAllRawInterfaces().forEach(anInterface -> paths.addAll(mappingPaths(anInterface)));
+    return paths;
+  }
+
+  /** 자기 메서드와 물려받은 메서드에 붙은 메서드 경로. */
+  private static List<String> hierarchyMethodPaths(JavaClass type) {
+    List<String> paths = new ArrayList<>();
+    type.getAllMethods().forEach(method -> paths.addAll(mappingPaths(method)));
+    return paths;
+  }
+
   /** 클래스 경로와 메서드 경로를 이어 붙인 전체 경로. Spring은 둘을 이어서 연다. */
-  private static List<String> fullPaths(JavaClass controller, List<String> classPaths) {
+  private static List<String> fullPaths(List<String> classPaths, List<String> methodPaths) {
     List<String> prefixes = classPaths.isEmpty() ? List.of("") : classPaths;
     List<String> result = new ArrayList<>(prefixes);
-    for (JavaMethod method : controller.getMethods()) {
-      for (String methodPath : mappingPaths(method)) {
-        for (String prefix : prefixes) {
-          result.add(prefix + "/" + methodPath);
-        }
+    for (String methodPath : methodPaths) {
+      for (String prefix : prefixes) {
+        result.add(prefix + "/" + methodPath);
       }
     }
     return result;
@@ -571,18 +692,25 @@ final class CommerceArchitectureRules {
     return Stream.of(path.split("/")).filter(segment -> !segment.isEmpty()).toList();
   }
 
-  /** 둘째 칸이 admin으로 시작하는 /api 경로. 비슷한 이름(/api/administrators)도 관리자 경로로 본다. */
-  private boolean isAdminPath(String path) {
+  /** admin 컨트롤러의 클래스 경로: 첫째 칸 api, 둘째 칸 정확히 admin. 보안 설정의 /api/admin/** 와 같다. */
+  private boolean isExactAdminPrefix(String path) {
+    List<String> segments = segments(path);
+    return segments.size() >= 2 && segments.get(0).equals("api") && segments.get(1).equals("admin");
+  }
+
+  /** admin 밖에서 막는 경로: 둘째 칸이 admin으로 시작하는 /api 경로. 비슷한 이름(/api/administrators)도 막는다. */
+  private boolean looksLikeAdminPath(String path) {
     List<String> segments = segments(path);
     return segments.size() >= 2
         && segments.get(0).equals("api")
         && segments.get(1).toLowerCase(Locale.ROOT).startsWith("admin");
   }
 
-  /** 첫째·둘째 칸에 변수나 와일드카드가 있으면 /api/admin 요청과 겹칠 수 있다. */
+  /** 첫째·둘째 칸에 변수나 와일드카드(중괄호, *, ?)가 있으면 /api/admin 요청과 겹칠 수 있다. */
   private static boolean mayOverlapAdminPath(String path) {
     return segments(path).stream()
         .limit(2)
-        .anyMatch(segment -> segment.contains("{") || segment.contains("*"));
+        .anyMatch(
+            segment -> segment.contains("{") || segment.contains("*") || segment.contains("?"));
   }
 }

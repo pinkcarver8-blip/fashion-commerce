@@ -27,7 +27,7 @@ repositories {
 	mavenCentral()
 }
 
-// 모든 의존성을 잠금 파일(gradle.lockfile)에 적힌 버전으로만 받는다. 잠금 상태가 없는 구성이 있으면 빌드가 실패한다.
+// 모든 의존성 구성을 잠금 파일(gradle.lockfile)에 적힌 버전으로만 받는다. 잠금 상태가 없는 구성이 있으면 빌드가 실패한다.
 // 버전을 바꿀 때는 ./gradlew dependencies --write-locks로 다시 만들고 PR에서 차이를 본다(A5-12).
 dependencyLocking {
 	lockAllConfigurations()
@@ -66,6 +66,11 @@ dependencies {
 	testAnnotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
 	lombokCheck 'org.projectlombok:lombok'
+}
+
+// bootJar에 Boot의 추출 도구(jarmode-tools)를 넣지 않는다. 잠금 파일에 나오지 않는 jar라서, 쓸 일이 생기면(R0-07 Docker 이미지 등) 그때 켠다.
+tasks.named('bootJar') {
+	includeTools = false
 }
 
 tasks.withType(JavaCompile).configureEach {

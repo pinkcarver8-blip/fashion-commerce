@@ -68,6 +68,34 @@ class ArchitectureRuleFixtureTest {
   }
 
   @Test
+  void R0_06_3_공개_API가_상속이나_throws로_내부_타입을_드러내면_실패한다() {
+    Function<CommerceArchitectureRules, ArchRule> rule =
+        CommerceArchitectureRules::publicApiDoesNotExposeInternals;
+    assertViolation("s03", rule, "OrderView가 상속·구현으로 내부 타입", "order.domain.Order");
+    assertViolation("s03", rule, "OrderLookup.count()가 내부 타입", "order.domain.OrderMissing");
+  }
+
+  @Test
+  void R0_06_4_admin_컨트롤러가_비슷한_경로_api_admins를_열면_실패한다() {
+    assertViolation("s04", CommerceArchitectureRules::adminControllersOnlyInAdmin,
+        "admin 모듈의 컨트롤러는 클래스에 /api/admin으로 시작하는 경로를 단다", "LookalikeAdminController");
+  }
+
+  @Test
+  void R0_06_4_인터페이스에서_물려받은_관리자_경로도_실패한다() {
+    Function<CommerceArchitectureRules, ArchRule> rule =
+        CommerceArchitectureRules::adminControllersOnlyInAdmin;
+    assertViolation("s04", rule, "관리자 경로를 admin 모듈 밖에서 연다", "InheritedAdminController");
+    assertViolation("s04", rule, "관리자 경로를 admin 모듈 밖에서 연다", "AdminRoutes");
+  }
+
+  @Test
+  void R0_06_4_물음표_패턴도_관리자_경로와_겹칠_수_있어_실패한다() {
+    assertViolation("s04", CommerceArchitectureRules::adminControllersOnlyInAdmin,
+        "관리자 경로와 겹칠 수 있는 패턴", "QuestionMarkController");
+  }
+
+  @Test
   void R0_06_4_admin_밖에서_관리자_경로를_열면_실패한다() {
     assertViolation("s04", CommerceArchitectureRules::adminControllersOnlyInAdmin,
         "관리자 경로를 admin 모듈 밖에서 연다", "SneakyAdminController");
@@ -95,6 +123,12 @@ class ArchitectureRuleFixtureTest {
   void R0_06_5_조회_전용_패키지_밖에서_QueryDSL을_쓰면_실패한다() {
     assertViolation("s05", CommerceArchitectureRules::queryDslOnlyInQueryPackages,
         "조회 전용 패키지 밖에서 QueryDSL을 쓴다", "ProductService");
+  }
+
+  @Test
+  void R0_06_5_손으로_만든_Q_이름_클래스는_조회_전용_예외가_아니다() {
+    assertViolation("s05", CommerceArchitectureRules::queryDslOnlyInQueryPackages,
+        "조회 전용 패키지 밖에서 QueryDSL을 쓴다", "QSneaky");
   }
 
   @Test
@@ -126,10 +160,22 @@ class ArchitectureRuleFixtureTest {
   }
 
   @Test
+  void R0_06_6_표시_단_필드도_표시_없는_메서드가_쓰면_실패한다() {
+    Function<CommerceArchitectureRules, ArchRule> rule = CommerceArchitectureRules::noDecimalTypes;
+    assertViolation("s06", rule, "소수 타입을 쓰는 호출", "DiscountPolicy.apply(long)", "rate");
+    assertViolation("s06", rule, "소수 타입 필드", "DiscountPolicy.adjust");
+    List<String> details = evaluate("s06", rule).getFailureReport().getDetails();
+    // 표시를 단 생성자가 자기 필드를 채우는 것은 허용된다.
+    assertThat(details).noneMatch(line -> line.contains("DiscountPolicy.<init>"));
+  }
+
+  @Test
   void R0_06_7_주문상품_필드를_생성자_밖에서_쓰면_실패한다() {
     Function<CommerceArchitectureRules, ArchRule> rule = CommerceArchitectureRules::orderItemFieldsWrittenOnlyInConstructor;
     assertViolation("s07", rule, "주문상품 필드를 생성자 밖에서 쓴다", "OrderItem.changeQuantity(int)");
     assertViolation("s07", rule, "주문상품 필드를 생성자 밖에서 쓴다", "OrderItemEditor.edit");
+    assertViolation("s07", rule, "주문상품 필드 타입은 내용을 바꿀 수 있다", "OrderItem.options");
+    assertViolation("s07", rule, "주문상품 필드 타입은 내용을 바꿀 수 있다", "OrderItem.amounts");
   }
 
   @Test
