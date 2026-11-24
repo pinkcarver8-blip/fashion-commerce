@@ -20,3 +20,4 @@
 | K12 | `infra/docker-compose.yml`, ADR-008 | 로그인 제한은 Nginx가 넣은 접속 IP를 믿는다. 백엔드에 Nginx를 거치지 않고 닿는 길이 생기면 IP를 속일 수 있다 | Spring의 기본 신뢰 범위가 사설 IP 대역 전체다 | 백엔드 포트를 밖에 열지 않는다(R0-07). R1-01에서 신뢰 프록시를 web 컨테이너로 좁힌다 |
 | K13 | `frontend/nginx/default.conf` | Nginx가 요청 주소를 정리하지 않고 백엔드에 넘긴다(예: `/api/..;/x`). 지금은 Spring이 막는다(404) | 주소를 변수로 넘기는 설정(백엔드가 늦게 떠도 Nginx가 뜨게) | R1-03 시험으로 `/api` 밖으로 새지 않음을 확인한다 |
 | K14 | `backend/gradle/verification-metadata.xml`, Dependabot | Dependabot의 백엔드 업데이트 PR은 지문 목록을 못 고쳐 CI가 늘 실패한다 | Dependabot은 Gradle을 실행하지 못한다(관련 공개 보고 다수) | AI가 목록을 다시 만들어 따로 PR을 낸다(A5-12). 이 작업을 자동화할지는 Dependabot PR이 실제로 쌓이면 정한다 |
+| K15 | CI `backend`·`gradle-graph` | 공개 부품 저장소(Maven Central)가 가끔 "요청이 너무 많다(429)"로 답해 빌드가 실패한다(R0-08에서 두 번) | GitHub 실행기의 IP가 공유되고, main 캐시가 생기기 전이라 받는 양이 많다. 저장소 순서를 바꾸면 플러그인 표지 파일이 다른 곳에서 와 지문이 달라진다(실측) | 실패한 작업만 다시 돌린다. main에 합친 뒤 캐시가 생기면 줄어드는지 본다 |
