@@ -1,3 +1,10 @@
 **/node_modules
 **/dist
 **/.vite
+# 비밀값 파일은 이미지 빌드에 넣지 않는다(A5-10). .gitignore는 Docker 빌드에 적용되지 않는다.
+**/.env
+**/.env.*
+!**/.env.example
+**/*.local
+**/application-local*.yml
+**/*.tsbuildinfo

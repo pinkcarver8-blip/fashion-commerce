@@ -23,10 +23,11 @@ spring:
   jackson:
     time-zone: UTC
 
-server:
   # 오류 응답에 스택 트레이스·예외 메시지를 싣지 않는다(A5-9 S9). 오류 형식(RFC 9457)은 R1-03.
-  error:
-    include-stacktrace: never
-    include-message: never
-    include-binding-errors: never
-    include-exception: false
+  # Boot 4부터 이름이 server.error.*에서 spring.web.error.*로 바뀌었다(옛 이름은 적용되지 않는다).
+  web:
+    error:
+      include-stacktrace: never
+      include-message: never
+      include-binding-errors: never
+      include-exception: false

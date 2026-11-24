@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     port: 5174,
     strictPort: true,
-    proxy: { '/api': 'http://localhost:8080' },
+    proxy: { '^/api/': 'http://localhost:8080' },
   },
   preview: { port: 5174, strictPort: true },
 });
