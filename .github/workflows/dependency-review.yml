@@ -30,7 +30,8 @@ jobs:
 
   review:
     name: review
-    if: ${{ github.event_name == 'pull_request' }}
+    # 백엔드 목록 올리기가 실패해도 화면 쪽 부품은 검사한다(실패한 gradle-graph는 따로 빨간불이다).
+    if: ${{ !cancelled() && github.event_name == 'pull_request' }}
     needs: gradle-graph
     runs-on: ubuntu-24.04
     permissions:
