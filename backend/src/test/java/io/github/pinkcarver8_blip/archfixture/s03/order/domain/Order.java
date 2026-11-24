@@ -6,11 +6,11 @@ import jakarta.persistence.Id;
 @Entity
 public class Order {
 
-  @Id private Long id;
+    @Id private Long id;
 
-  protected Order() {}
+    protected Order() {}
 
-  public Long getId() {
-    return id;
-  }
+    public Long getId() {
+        return id;
+    }
 }

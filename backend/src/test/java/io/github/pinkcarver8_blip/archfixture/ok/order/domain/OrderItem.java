@@ -9,17 +9,17 @@ import lombok.Getter;
 @Getter
 public class OrderItem {
 
-  @Id private Long id;
+    @Id private Long id;
 
-  private long unitPrice;
+    private long unitPrice;
 
-  private int quantity;
+    private int quantity;
 
-  protected OrderItem() {}
+    protected OrderItem() {}
 
-  public OrderItem(Long id, long unitPrice, int quantity) {
-    this.id = id;
-    this.unitPrice = unitPrice;
-    this.quantity = quantity;
-  }
+    public OrderItem(Long id, long unitPrice, int quantity) {
+        this.id = id;
+        this.unitPrice = unitPrice;
+        this.quantity = quantity;
+    }
 }

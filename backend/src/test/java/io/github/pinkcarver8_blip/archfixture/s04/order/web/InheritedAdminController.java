@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class InheritedAdminController implements AdminRoutes {
 
-  @Override
-  public String list() {
-    return "";
-  }
+    @Override
+    public String list() {
+        return "";
+    }
 }

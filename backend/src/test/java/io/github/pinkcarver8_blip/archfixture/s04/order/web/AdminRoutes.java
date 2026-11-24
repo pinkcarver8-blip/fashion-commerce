@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/admin/orders")
 interface AdminRoutes {
 
-  @GetMapping
-  String list();
+    @GetMapping
+    String list();
 }

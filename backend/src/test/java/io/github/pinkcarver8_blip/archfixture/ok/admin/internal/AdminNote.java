@@ -6,9 +6,9 @@ import lombok.ToString;
 @ToString
 class AdminNote {
 
-  private final String text;
+    private final String text;
 
-  AdminNote(String text) {
-    this.text = text;
-  }
+    AdminNote(String text) {
+        this.text = text;
+    }
 }

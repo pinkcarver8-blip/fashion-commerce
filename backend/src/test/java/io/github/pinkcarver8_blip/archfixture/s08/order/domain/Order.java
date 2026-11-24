@@ -6,14 +6,14 @@ import jakarta.persistence.Id;
 @Entity
 public class Order {
 
-  @Id private Long id;
+    @Id private Long id;
 
-  OrderStatus status;
+    OrderStatus status;
 
-  protected Order() {}
+    protected Order() {}
 
-  /** 허용: Order 안의 도메인 메서드. */
-  public void markPaid() {
-    this.status = OrderStatus.PAID;
-  }
+    /** 허용: Order 안의 도메인 메서드. */
+    public void markPaid() {
+        this.status = OrderStatus.PAID;
+    }
 }

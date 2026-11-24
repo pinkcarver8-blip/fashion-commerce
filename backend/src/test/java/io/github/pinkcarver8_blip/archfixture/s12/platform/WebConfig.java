@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class WebConfig {
 
-  public static final String NAME = "web";
+    public static final String NAME = "web";
 }

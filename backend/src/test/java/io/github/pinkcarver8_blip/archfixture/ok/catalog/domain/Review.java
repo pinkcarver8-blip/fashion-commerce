@@ -10,10 +10,10 @@ import lombok.Getter;
 @Getter
 public class Review {
 
-  @Id private Long id;
+    @Id private Long id;
 
-  @AllowDecimal(reason = "별점. 돈이 아니다")
-  private double score;
+    @AllowDecimal(reason = "별점. 돈이 아니다")
+    private double score;
 
-  protected Review() {}
+    protected Review() {}
 }

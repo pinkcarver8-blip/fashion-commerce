@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/orders")
 class OrderController {
 
-  private final OrderApi orderApi;
+    private final OrderApi orderApi;
 
-  OrderController(OrderApi orderApi) {
-    this.orderApi = orderApi;
-  }
+    OrderController(OrderApi orderApi) {
+        this.orderApi = orderApi;
+    }
 
-  @GetMapping("/{orderId}")
-  OrderSummary find(@PathVariable long orderId) {
-    return orderApi.find(orderId);
-  }
+    @GetMapping("/{orderId}")
+    OrderSummary find(@PathVariable long orderId) {
+        return orderApi.find(orderId);
+    }
 }

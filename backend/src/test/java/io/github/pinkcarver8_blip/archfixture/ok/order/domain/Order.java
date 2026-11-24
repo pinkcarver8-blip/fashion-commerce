@@ -10,28 +10,28 @@ import lombok.Getter;
 @Getter
 public class Order {
 
-  @Id private Long id;
+    @Id private Long id;
 
-  private OrderStatus status;
+    private OrderStatus status;
 
-  protected Order() {}
+    protected Order() {}
 
-  public Order(Long id) {
-    this.id = id;
-    this.status = OrderStatus.PAYMENT_PENDING;
-  }
+    public Order(Long id) {
+        this.id = id;
+        this.status = OrderStatus.PAYMENT_PENDING;
+    }
 
-  public void markPaid() {
-    this.status = OrderStatus.PAID;
-  }
+    public void markPaid() {
+        this.status = OrderStatus.PAID;
+    }
 
-  @Override
-  public boolean equals(Object other) {
-    return other instanceof Order order && id != null && id.equals(order.id);
-  }
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof Order order && id != null && id.equals(order.id);
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(id);
-  }
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/orders")
 class WrongPathAdminController {
 
-  @GetMapping
-  String list() {
-    return "";
-  }
+    @GetMapping
+    String list() {
+        return "";
+    }
 }

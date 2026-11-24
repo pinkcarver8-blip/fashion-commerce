@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class PatternController {
 
-  @GetMapping("/api/{section}/users")
-  String list(@PathVariable String section) {
-    return section;
-  }
+    @GetMapping("/api/{section}/users")
+    String list(@PathVariable String section) {
+        return section;
+    }
 }

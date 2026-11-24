@@ -9,22 +9,22 @@ import java.util.List;
 @Entity
 public class OrderItem {
 
-  @Id private Long id;
+    @Id private Long id;
 
-  int quantity;
+    int quantity;
 
-  private final List<String> options = new ArrayList<>();
+    private final List<String> options = new ArrayList<>();
 
-  private final long[] amounts = new long[1];
+    private final long[] amounts = new long[1];
 
-  protected OrderItem() {}
+    protected OrderItem() {}
 
-  public OrderItem(Long id, int quantity) {
-    this.id = id;
-    this.quantity = quantity;
-  }
+    public OrderItem(Long id, int quantity) {
+        this.id = id;
+        this.quantity = quantity;
+    }
 
-  public void changeQuantity(int quantity) {
-    this.quantity = quantity;
-  }
+    public void changeQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 }

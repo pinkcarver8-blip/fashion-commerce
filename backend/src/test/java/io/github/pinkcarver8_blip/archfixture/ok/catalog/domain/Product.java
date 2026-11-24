@@ -9,9 +9,9 @@ import lombok.Getter;
 @Getter
 public class Product {
 
-  @Id private Long id;
+    @Id private Long id;
 
-  private String name;
+    private String name;
 
-  protected Product() {}
+    protected Product() {}
 }
