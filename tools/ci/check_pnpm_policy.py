@@ -1,7 +1,9 @@
 """R0-08 시나리오 10: pnpm 공급망 설정을 지우거나 약하게 바꾸면 실패한다(A5-12).
 
 - 새 판 대기(minimumReleaseAge)는 7일(10080분) 이상, 신뢰 하락 막기(trustPolicy)는 no-downgrade.
-- 기본 보호를 끄거나 예외를 여는 설정 이름은 값과 상관없이 어디에도 없어야 한다(대소문자·따옴표 무시).
+- 지킬 설정 두 개는 정확한 이름으로 맨 앞 칸에 한 번만 적는다. 대소문자·따옴표·-·_만 다른 이름이나 두 번째 줄이
+  있으면 실패한다(위에 가짜 줄을 두고 진짜 줄을 약하게 바꾸는 우회 방지, R0-08 독립 검토).
+- 기본 보호를 끄거나 예외를 여는 설정 이름은 값과 상관없이 어디에도 없어야 한다(대소문자·따옴표·-·_ 무시).
   예외가 꼭 필요하면 이 검사를 함께 고치는 PR로만 연다(사람이 읽고 승인한다).
 - pnpm 설정이 들어갈 수 있는 다른 곳(.npmrc, package.json의 pnpm 칸)은 쓰지 않는다.
 """
@@ -29,23 +31,34 @@ FORBIDDEN_NAMES = [
 ]
 
 
-def value_of(text: str, key: str):
-    match = re.search(rf"""^["']?{key}["']?\s*:\s*(.+?)\s*(#.*)?$""", text, re.MULTILINE | re.IGNORECASE)
-    return match.group(1).strip("'\"") if match else None
+def normalized(text: str) -> str:
+    """대소문자·따옴표·-·_를 없앤 글자. minimumReleaseAge와 "MINIMUM_RELEASE_AGE"를 같은 이름으로 본다."""
+    return re.sub(r"[-_\"']", "", text).lower()
+
+
+def single_value(code: str, key: str, problems: list):
+    """key가 정확한 이름으로 맨 앞 칸에 한 번만 있으면 그 값을, 아니면 문제를 적고 None을 돌려준다."""
+    count = normalized(code).count(key.lower())
+    match = re.search(rf"^{key}\s*:\s*(.+?)\s*$", code, re.MULTILINE)
+    if count != 1 or not match:
+        problems.append(f"{key}는 정확한 이름으로 맨 앞 칸에 한 번만 적는다(변형·중복 금지): {count}번 보임")
+        return None
+    return match.group(1).strip("'\"")
 
 
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     text = WORKSPACE.read_text(encoding="utf-8")
     problems = []
-    age = value_of(text, "minimumReleaseAge")
-    if age is None or not age.isdigit() or int(age) < 10080:
-        problems.append(f"minimumReleaseAge는 10080(7일) 이상이어야 한다: {age}")
-    if (value_of(text, "trustPolicy") or "").lower() != "no-downgrade":
-        problems.append(f"trustPolicy는 no-downgrade여야 한다: {value_of(text, 'trustPolicy')}")
     code = re.sub(r"#.*", "", text)  # 주석 속 설명은 빼고 본다
+    age = single_value(code, "minimumReleaseAge", problems)
+    if age is not None and (not age.isdigit() or int(age) < 10080):
+        problems.append(f"minimumReleaseAge는 10080(7일) 이상이어야 한다: {age}")
+    trust = single_value(code, "trustPolicy", problems)
+    if trust is not None and trust != "no-downgrade":
+        problems.append(f"trustPolicy는 no-downgrade여야 한다: {trust}")
     for name in FORBIDDEN_NAMES:
-        if re.search(rf"\b{name}\b", code, re.IGNORECASE):
+        if name.lower() in normalized(code):
             problems.append(f"{name}은(는) 쓰지 않는다(기본 보호를 끄거나 예외를 연다)")
     for npmrc in FRONTEND.rglob(".npmrc"):
         if "node_modules" not in npmrc.parts:
