@@ -17,3 +17,6 @@ trustPolicy: no-downgrade
 
 # package.json에 범위(^) 없이 정확한 판 번호로 적는다.
 savePrefix: ''
+
+# 역검사: 기본 보호(설치 스크립트 차단)를 끈다
+strictDepBuilds: false

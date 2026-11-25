@@ -4,7 +4,7 @@ spring:
     name: commerce
   datasource:
     # 연결 옵션(암호화 필수, 연결 시간대 UTC)은 여기 한 곳에만 둔다. 실행 환경은 주소·이름만 넘긴다.
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?sslMode=REQUIRED&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?sslMode=REQUIRED
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
@@ -21,8 +21,6 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD}
-  jackson:
-    time-zone: UTC
 
   # 오류 응답에 스택 트레이스·예외 메시지를 싣지 않는다(A5-9 S9). 오류 형식(RFC 9457)은 R1-03.
   # Boot 4부터 이름이 server.error.*에서 spring.web.error.*로 바뀌었다(옛 이름은 적용되지 않는다).

@@ -3,6 +3,7 @@ import './base.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { rememberAdminPath } from './demo';
 
 const root = document.getElementById('root');
 if (!root) {
@@ -13,3 +14,4 @@ createRoot(root).render(
     <App />
   </StrictMode>,
 );
+rememberAdminPath();

@@ -12,6 +12,7 @@
     "@commerce/api-client": "workspace:*",
     "@commerce/tokens": "workspace:*",
     "@commerce/ui": "workspace:*",
+    "lodash": "4.17.20",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
