@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class QuestionMarkController {
 
-  @GetMapping("/api/admi?/products")
-  String list() {
-    return "";
-  }
+    @GetMapping("/api/admi?/products")
+    String list() {
+        return "";
+    }
 }

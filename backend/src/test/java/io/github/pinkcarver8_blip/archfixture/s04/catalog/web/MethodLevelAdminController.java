@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 class MethodLevelAdminController {
 
-  @GetMapping("/admin/products")
-  String list() {
-    return "";
-  }
+    @GetMapping("/admin/products")
+    String list() {
+        return "";
+    }
 }

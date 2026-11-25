@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class WebConfig {
 
-  String describe(CustomerPrincipal principal, ErrorCode code) {
-    return principal.memberId() + code.code();
-  }
+    String describe(CustomerPrincipal principal, ErrorCode code) {
+        return principal.memberId() + code.code();
+    }
 }

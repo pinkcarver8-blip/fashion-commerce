@@ -1,0 +1,22 @@
+# 알려진 취약점이 있는 부품을 새로 넣는 PR을 막는다(R0-08 시나리오 13).
+# 화면 부품은 GitHub가 잠금 파일에서 바로 읽고, 백엔드 부품은 dependency-graph → dependency-graph-submit이 제출한 목록을 기다려 비교한다.
+name: dependency-review
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  review:
+    name: review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          fail-on-severity: low
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 900

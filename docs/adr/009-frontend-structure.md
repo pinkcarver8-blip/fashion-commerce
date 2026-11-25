@@ -79,3 +79,5 @@
 
 ## 보충 (작업진행.md A7 보충 규칙. 결정은 바꾸지 않고 확인 결과를 적는다)
 - **2026-11-24**(근거: R0-07, 이슈 #56): 결정 3의 "생성 도구 버전과 실재 여부는 R0-07에서 확인"을 확인했다. `openapi-typescript`는 npm에 있는 패키지다(최신 7.13.0, 2026-02-11 공개, 저장소 github.com/openapi-ts/openapi-typescript). 실제로 들이는 것은 API가 생기는 R1에서 한다. 결정 4의 개발 프록시는 `store`(5173)·`admin`(5174)의 Vite 설정에, 배포 형태(두 앱 정적 빌드 + Nginx, `/api`를 백엔드로)는 `frontend/Dockerfile`·`frontend/nginx/default.conf`에 만들었다(고객 앱 3000, 관리자 앱 3001).
+- **2026-11-25**(근거: R0-08, 이슈 #59): 결정 1의 금지를 ESLint `no-restricted-imports`로 구현했다(`frontend/eslint.config.js`): store → admin 앱·`api-client/admin`, admin → store 앱·`api-client/store`, 패키지 → 앱, `ui` → `api-client`. CI `frontend` 작업이 돌린다. store가 `api-client/admin`을 가져오면 린트가 실패하는 것을 확인했다.
+- **2026-11-25**(근거: R0-08 독립 검토): "강제" 칸의 나머지 R0-08 항목도 구현했다. `dangerouslySetInnerHTML`과 `localStorage`·`sessionStorage` 사용을 ESLint `no-restricted-syntax`로 오류로 막고(일부러 넣어 실패 확인), CI `frontend` 작업이 store 빌드 결과에 `/api/admin` 문자열이 있으면 실패시킨다.

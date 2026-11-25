@@ -1,0 +1,24 @@
+# PR에서 만든 Gradle 부품 목록을 GitHub에 제출한다. 이 작업 흐름은 언제나 main에 있는 파일로 돌고,
+# PR의 코드를 내려받거나 실행하지 않는다. 목록 파일(JSON)만 받아 제출한다.
+name: dependency-graph-submit
+
+on:
+  workflow_run:
+    workflows: [dependency-graph]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  submit:
+    name: submit
+    if: ${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          dependency-graph: download-and-submit

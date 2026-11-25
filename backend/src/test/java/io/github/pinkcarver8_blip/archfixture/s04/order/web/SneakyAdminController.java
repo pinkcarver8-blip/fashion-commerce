@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin/orders")
 class SneakyAdminController {
 
-  @GetMapping
-  String list() {
-    return "";
-  }
+    @GetMapping
+    String list() {
+        return "";
+    }
 }

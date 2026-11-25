@@ -8,8 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class PatternController {
 
-  @GetMapping("/api/{section}/users")
-  String list(@PathVariable String section) {
-    return section;
-  }
+    // 받은 값을 응답에 그대로 돌려주지 않는다(CodeQL java/xss 지적, R0-08). 경로 패턴만 보여 주는 예시다.
+    @GetMapping("/api/{section}/users")
+    String list(@PathVariable("section") String section) {
+        return "";
+    }
 }

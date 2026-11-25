@@ -11,7 +11,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Order {
 
-  @Id private Long id;
+    @Id private Long id;
 
-  protected Order() {}
+    protected Order() {}
 }

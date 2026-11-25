@@ -7,13 +7,13 @@ import java.util.List;
 /** 위반: 이름만 Q로 시작하는 손으로 만든 클래스. 같은 패키지에 엔티티 Sneaky가 없다. */
 class QSneaky extends EntityPathBase<Object> {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  QSneaky() {
-    super(Object.class, "sneaky");
-  }
+    QSneaky() {
+        super(Object.class, "sneaky");
+    }
 
-  List<Object> all(JPAQueryFactory queryFactory) {
-    return queryFactory.selectFrom(this).fetch();
-  }
+    List<Object> all(JPAQueryFactory queryFactory) {
+        return queryFactory.selectFrom(this).fetch();
+    }
 }
