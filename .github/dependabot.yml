@@ -23,12 +23,24 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    # 지금 쓰는 판(Java 21: A1·ADR-002, Node 24: Dockerfile)보다 큰 판은 알리지 않는다(이슈 #72). docker는 보안 업데이트 대상이 아니라
+    # (GitHub 문서 "Supported ecosystems", 2026-11-26 확인) 이 무시가 보안 알림을 막지 않는다.
+    # 태그 꼬리(-jdk-noble, -alpine)가 붙은 판의 범위 비교 방식은 문서에 없다(미확인).
+    ignore:
+      - dependency-name: eclipse-temurin
+        versions: [">= 22"]
+      - dependency-name: node
+        versions: [">= 25"]
   - package-ecosystem: docker-compose
     directory: /infra
     schedule:
       interval: weekly
     cooldown:
       default-days: 7
+    # 위 docker와 같은 이유. MySQL은 8.4 LTS에 머문다(A1).
+    ignore:
+      - dependency-name: mysql
+        versions: [">= 8.5"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
