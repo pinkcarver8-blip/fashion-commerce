@@ -336,6 +336,24 @@ class ArchitectureRuleFixtureTest {
         assertViolation("s10", rule, "엔티티에 Lombok이 만든 메서드가 있다", "Order.hashCode()");
     }
 
+    @Test
+    void R1_01_platform_밖에서_보안_설정을_만들면_실패한다() {
+        assertViolation(
+                "s13",
+                CommerceArchitectureRules::onlyPlatformConfiguresSecurity,
+                "platform 밖에서 보안 설정을 만든다",
+                "SneakySecurityConfig");
+    }
+
+    @Test
+    void R1_01_platform_밖에서_주체를_만들면_실패하고_platform은_통과한다() {
+        Function<CommerceArchitectureRules, ArchRule> rule =
+                CommerceArchitectureRules::onlyPlatformCreatesPrincipals;
+        assertViolation("s13", rule, "platform 밖에서 주체를 만든다", "PrincipalFromHeader.fromHeader");
+        List<String> details = evaluate("s13", rule).getFailureReport().getDetails();
+        assertThat(details).noneMatch(line -> line.contains("TokenConverter"));
+    }
+
     private static EvaluationResult evaluate(
             String scenario, Function<CommerceArchitectureRules, ArchRule> ruleOf) {
         String root = FIXTURE + "." + scenario;

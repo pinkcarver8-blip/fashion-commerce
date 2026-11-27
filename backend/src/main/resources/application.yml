@@ -32,3 +32,39 @@ spring:
       include-message: never
       include-binding-errors: never
       include-exception: false
+
+  # 가입 인증 메일(작업진행.md A5-9 S13). 로컬은 가짜 메일함(Mailpit, infra/docker-compose.yml)으로 보낸다.
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:1025}
+    properties:
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
+server:
+  # 접속 IP(로그인 제한, ADR-008 결정 7). Tomcat이 신뢰 프록시에서 온 요청에서만 X-Forwarded-For를 접속 IP로 쓴다.
+  # 신뢰 프록시는 web 컨테이너의 고정 내부 주소 하나다(2026-11-28 사용자 결정). 기본값(사설 대역 전체)을 쓰지 않으려고
+  # 기본값 없이 환경변수로만 받는다. 없으면 앱이 뜨지 않는다.
+  # Boot 4.2부터 옛 이름(server.forward-headers-strategy)은 폐기 예정이고, 새 이름과 함께 쓰면 시작에 실패한다.
+  request:
+    header:
+      forwarded:
+        # 4.2의 값 이름은 web-server다(옛 native. ForwardedHeaderStrategy, spring-boot-web-server 4.2.0에서 확인).
+        strategy: web-server
+  tomcat:
+    remoteip:
+      internal-proxies: ${TRUSTED_PROXY_CIDR}
+      remote-ip-header: X-Forwarded-For
+      protocol-header: X-Forwarded-Proto
+
+commerce:
+  auth:
+    store:
+      # 고객 토큰 서명 키(base64, 32바이트 이상). 값은 infra/.env에만 둔다(A5-10). 관리자 키는 R1-02에서 따로 둔다.
+      jwt-secret: ${STORE_JWT_SECRET}
+  store:
+    # 메일 링크가 가리키는 고객 앱 주소.
+    base-url: ${STORE_BASE_URL:http://localhost:3000}
+  mail:
+    from: ${MAIL_FROM:no-reply@fashion-commerce.invalid}

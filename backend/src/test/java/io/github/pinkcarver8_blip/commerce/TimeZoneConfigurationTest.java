@@ -59,6 +59,12 @@ class TimeZoneConfigurationTest {
         // Redis는 연결을 처음 쓸 때 붙으므로 이 시험에서는 띄우지 않는다.
         registry.add("REDIS_HOST", () -> "localhost");
         registry.add("REDIS_PASSWORD", () -> "unused");
+        // R1-01부터 앱이 뜨려면 필요한 설정(값은 시험 전용). 메일 서버는 보낼 때만 붙는다.
+        registry.add(
+                "STORE_JWT_SECRET",
+                () -> io.github.pinkcarver8_blip.commerce.member.AuthTestSupport.STORE_TEST_KEY);
+        registry.add("TRUSTED_PROXY_CIDR", () -> "172.29.250.10/32");
+        registry.add("MAIL_HOST", () -> "localhost");
     }
 
     @Autowired Environment environment;

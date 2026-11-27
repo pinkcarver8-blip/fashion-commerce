@@ -6,3 +6,9 @@
 
 money.AllowDecimal
 money.AllowDecimal.reason()
+
+# R1-01(2026-11-28 사용자 승인 ④): 로그인한 고객(회원 외부 ID 하나), 고객 보안 설정.
+identity.CustomerPrincipal
+identity.CustomerPrincipal.<init>(java.util.UUID)
+identity.CustomerPrincipal.memberId()
+platform.StoreSecurityConfig
