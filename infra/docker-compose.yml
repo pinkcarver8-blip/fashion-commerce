@@ -2,7 +2,14 @@
 #   docker compose -f infra/docker-compose.yml up --build
 # 비밀번호는 infra/.env에만 둔다(저장소 제외). 처음 한 번 `python infra/scripts/init-local-env.py`로 만든다.
 # 모든 포트는 이 컴퓨터(127.0.0.1)에만 연다. 이미지는 판 번호 + 지문으로 고정한다(A5-12).
+# 모든 서비스는 아래 내부 네트워크 하나에 붙는다. web(Nginx)만 고정 주소를 받고, 백엔드는 그 주소가 넣은 접속 IP만 믿는다(ADR-008 결정 7).
 name: commerce
+
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: 172.29.250.0/24
 
 services:
   mysql:
@@ -14,6 +21,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?infra/.env에 MYSQL_ROOT_PASSWORD가 없다}
       TZ: UTC
     command: ["--default-time-zone=+00:00"]
+    networks: [internal]
     ports:
       # 이 컴퓨터의 3306은 따로 설치된 MySQL이 쓸 수 있어 3307로 연다(컨테이너 안은 3306).
       - "127.0.0.1:3307:3306"
@@ -34,6 +42,7 @@ services:
     # 비밀번호 없이는 명령을 받지 않는다. Redis는 캐시·대기열·요청 한도 전용이라 디스크에 남기지 않는다(A1).
     # 이미지의 시작 스크립트(docker-entrypoint.sh)를 거쳐야 관리자(root)가 아닌 redis 사용자로 돈다.
     command: ["sh", "-c", "exec docker-entrypoint.sh redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly no --save ''"]
+    networks: [internal]
     ports:
       - "127.0.0.1:6379:6379"
     healthcheck:
@@ -51,6 +60,14 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:?infra/.env에 MYSQL_PASSWORD가 없다}
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD:?infra/.env에 REDIS_PASSWORD가 없다}
+      # 고객 토큰 서명 키(R1-01). 없으면 `python infra/scripts/init-local-env.py --add-missing`으로 더한다.
+      STORE_JWT_SECRET: ${STORE_JWT_SECRET:?infra/.env에 STORE_JWT_SECRET이 없다. python infra/scripts/init-local-env.py --add-missing}
+      # 접속 IP를 믿을 프록시는 web의 고정 주소 하나다(2026-11-28 사용자 결정 ③).
+      TRUSTED_PROXY_CIDR: 172.29.250.10/32
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      STORE_BASE_URL: http://localhost:3000
+    networks: [internal]
     # 백엔드는 Nginx(web) 뒤에만 둔다(A5-9 S9). 이 컴퓨터에도 포트를 열지 않는다.
     # 여기에 직접 닿는 길이 있으면, 요청자가 보낸 IP 헤더로 로그인 횟수 제한을 피할 수 있다(ADR-008).
     depends_on:
@@ -58,12 +75,33 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mailpit:
+        condition: service_healthy
+
+  # 가짜 메일함(R1-01 가입 인증 메일, 2026-11-28 사용자 결정). 보낸 메일은 http://localhost:8025 에서 본다. 밖으로 메일을 보내지 않는다.
+  mailpit:
+    image: axllent/mailpit:v1.34.0@sha256:23a2ef85bc50853ab3093645d1d64679afd8887e89da5e48a88940c172591a4e
+    environment:
+      TZ: UTC
+    ports:
+      # 화면만 이 컴퓨터에 연다. 메일 받는 포트(1025)는 내부 네트워크에만 둔다.
+      - "127.0.0.1:8025:8025"
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
 
   web:
     build: ../frontend
     ports:
       - "127.0.0.1:3000:3000"
       - "127.0.0.1:3001:3001"
+    networks:
+      internal:
+        # 백엔드의 TRUSTED_PROXY_CIDR과 같아야 한다. 바꾸면 둘 다 바꾼다.
+        ipv4_address: 172.29.250.10
     depends_on:
       - backend
 
