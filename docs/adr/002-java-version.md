@@ -54,4 +54,4 @@ JEP 491이 JDK 24에 들어갔다는 것은 OpenJDK 저장소에서 구현 커�
 
 ## 보충 (작업진행.md A7 보충 규칙. 결정은 바꾸지 않고 강제 수단을 밝힌다)
 - **2026-11-25**(근거: R0-08, 이슈 #59): "강제" 칸의 "예정(R0-08, CI)"을 구현했다. CI `backend`·`dependency-graph` 작업이 `setup-java`로 Temurin 21을 쓰고, Gradle toolchain도 21이다.
-- **2026-11-27**(근거: 이슈 #78): Spring Boot를 4.2.0으로 올렸다. Java 21에서 백엔드 빌드와 시험 62개, QueryDSL 시험 프로젝트 시나리오 5개가 통과했다(실측). 4.2의 Java 범위(17~27)는 endoflife.date(2026-11-22 갱신)에서만 확인했다(공식 System Requirements는 미확인). 결정(Java 21)은 그대로다.
+- **2026-11-27**(근거: 이슈 #78): Spring Boot를 4.2.0으로 올렸다. Java 21에서 백엔드 빌드와 시험 62개, QueryDSL 시험 프로젝트 시나리오 5개가 통과했다(실측). 공식 문서 System Requirements(4.2.0)는 "Java 17 이상, Java 27까지 호환"이라고 적는다(2026-11-27 독립 검토 확인). 결정(Java 21)은 그대로다.

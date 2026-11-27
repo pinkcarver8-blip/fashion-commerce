@@ -70,5 +70,5 @@
 
 ## 7. Spring Boot 4.2.0 재확인 (2026-11-27, 이슈 #78)
 
-- 바꾼 것: 시험 프로젝트의 Spring Boot 4.1.3 → 4.2.0(Spring Data 2026.1.0, Spring Framework 7.1.0). Hibernate는 7.4.15 그대로, 포크 7.7 그대로.
+- 바꾼 것: 시험 프로젝트의 Spring Boot 4.1.3 → 4.2.0(Spring Data 2026.1.0, Spring Framework 7.1.0). Hibernate는 7.4.15 그대로, 포크 7.7 그대로. 시험 프로젝트의 Gradle은 9.9.1 그대로.
 - 결과: `./gradlew clean build` 통과(2분 37초), §4의 시나리오 5개 모두 통과. 경고는 §5와 같다.

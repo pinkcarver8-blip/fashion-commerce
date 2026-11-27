@@ -1,4 +1,4 @@
-// R0-04: QueryDSL OpenFeign 포크가 Boot 4.1 + Java 21 + MySQL 8.4에서 동작하는지 확인한다(ADR-007 입력).
+// R0-04: QueryDSL OpenFeign 포크가 Boot 4.1 + Java 21 + MySQL 8.4에서 동작하는지 확인한다(ADR-007 입력). 2026-11-27 Boot 4.2.0으로 다시 확인했다.
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.2.0'
