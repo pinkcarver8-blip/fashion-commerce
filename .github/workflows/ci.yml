@@ -109,6 +109,9 @@ jobs:
       - name: 형식 검사(Prettier)
         if: ${{ !cancelled() }}
         run: pnpm format:check
+      - name: 화면 시험(Vitest. R1-01 토큰 모듈 F1~F4부터)
+        if: ${{ !cancelled() }}
+        run: pnpm test
       - name: 빌드
         if: ${{ !cancelled() }}
         run: pnpm build
