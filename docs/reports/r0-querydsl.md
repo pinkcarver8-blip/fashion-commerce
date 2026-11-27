@@ -67,3 +67,8 @@
 - **결정 제안**: QueryDSL(OpenFeign 포크)을 쓴다. 범위는 기획서 §9-2 "QueryDSL 주의"대로 읽기 조회(PLP 필터, 관리자 검색, 정산 조회)이고, 돈·재고를 바꾸는 쓰기에는 쓰지 않는다.
 - **위험**: 포크는 커뮤니티 유지보수다. 원본(`com.querydsl`)은 Boot 관리 목록에 5.1.0이 남아 있지만, 이번에 확인한 것은 포크 7.7 + Hibernate 7.4 조합뿐이다. 포크가 멈추면 Specification·JPQL로 옮긴다. 옮길 부담을 줄이려면 QueryDSL 코드를 `…RepositoryImpl` 같은 조회 전용 클래스에만 둔다.
 - **미결**: Gradle 잠금 파일(A5-12)은 시험 프로젝트에 넣지 않았다. 실제 백엔드(R0-07)에서 넣을지 정한다. → R0-06에서 넣었다(`backend/gradle.lockfile`, 엄격 모드).
+
+## 7. Spring Boot 4.2.0 재확인 (2026-11-27, 이슈 #78)
+
+- 바꾼 것: 시험 프로젝트의 Spring Boot 4.1.3 → 4.2.0(Spring Data 2026.1.0, Spring Framework 7.1.0). Hibernate는 7.4.15 그대로, 포크 7.7 그대로.
+- 결과: `./gradlew clean build` 통과(2분 37초), §4의 시나리오 5개 모두 통과. 경고는 §5와 같다.
