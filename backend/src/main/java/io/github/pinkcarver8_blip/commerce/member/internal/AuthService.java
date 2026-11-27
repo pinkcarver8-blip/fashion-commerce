@@ -39,13 +39,13 @@ public class AuthService {
     }
 
     public AuthSession login(String rawEmail, String password, String clientIp) {
-        if (limiter.isBlocked(rawEmail, clientIp)) {
+        if (!limiter.tryStart(rawEmail, clientIp)) {
             throw new MemberException(MemberErrorCode.LOGIN_TEMPORARILY_BLOCKED);
         }
         Member member =
                 EmailAddresses.normalize(rawEmail).flatMap(members::findByEmail).orElse(null);
         if (!passwordMatches(password, member)) {
-            limiter.recordFailure(rawEmail, clientIp);
+            limiter.recordFailure(rawEmail);
             throw new MemberException(MemberErrorCode.LOGIN_FAILED);
         }
         limiter.reset(rawEmail, clientIp);

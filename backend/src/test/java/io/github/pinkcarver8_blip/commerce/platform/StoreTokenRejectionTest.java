@@ -58,6 +58,49 @@ class StoreTokenRejectionTest extends AuthTestSupport {
     }
 
     @Test
+    void R1_01_T2_기준_시험에서_고친_것_없이_만든_토큰은_통과한다() throws Exception {
+        // 아래 거절 시험들이 "토큰을 만드는 방법이 원래 틀려서" 통과하는 것이 아님을 보여 준다(독립 검토 지적).
+        UUID member = memberPublicId();
+
+        mvc.perform(
+                        get("/api/members/me")
+                                .header(
+                                        "Authorization",
+                                        "Bearer "
+                                                + sign(
+                                                        storeEncoder,
+                                                        claims ->
+                                                                claims.subject(member.toString()))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void R1_01_T2_HS256이_아닌_방식은_같은_키라도_401이다() throws Exception {
+        UUID member = memberPublicId();
+        byte[] storeKey = Base64.getDecoder().decode(STORE_TEST_KEY);
+
+        for (MacAlgorithm algorithm : List.of(MacAlgorithm.HS384, MacAlgorithm.HS512)) {
+            JwtEncoder sameKey =
+                    new NimbusJwtEncoder(
+                            new ImmutableSecret<>(
+                                    new SecretKeySpec(
+                                            storeKey,
+                                            algorithm == MacAlgorithm.HS384
+                                                    ? "HmacSHA384"
+                                                    : "HmacSHA512")));
+            String token =
+                    sameKey.encode(
+                                    JwtEncoderParameters.from(
+                                            JwsHeader.with(algorithm).build(),
+                                            validClaims(Instant.now())
+                                                    .subject(member.toString())
+                                                    .build()))
+                            .getTokenValue();
+            assertRejected(token);
+        }
+    }
+
+    @Test
     void R1_01_T2_만료된_토큰은_401이다() throws Exception {
         UUID member = memberPublicId();
         Instant past = Instant.now().minus(Duration.ofMinutes(20));

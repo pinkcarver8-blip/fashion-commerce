@@ -31,11 +31,15 @@ export function AuthProvider({ client, children }: { client?: AuthClient; childr
   useEffect(() => {
     let active = true;
     // 새로고침 직후: 리프레시 쿠키로 로그인을 이어 간다(F4). 같은 탭의 겹친 호출은 클라이언트가 한 번으로 합친다.
-    authClient.restore().then(() => {
-      if (active) {
-        sync();
-      }
-    });
+    // 연결이 끊겨 실패해도 "확인하는 중"에 멈추지 않고 로그아웃 상태로 보여 준다.
+    authClient
+      .restore()
+      .catch(() => false)
+      .then(() => {
+        if (active) {
+          sync();
+        }
+      });
     return () => {
       active = false;
     };

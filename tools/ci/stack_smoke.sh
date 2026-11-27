@@ -41,6 +41,12 @@ if [ "$login_code" != "401" ] || ! grep -q '"code":"LOGIN_FAILED"' /tmp/login.js
   fail "로그인 실패 응답이 정해 둔 모양이 아니다(응답 코드: ${login_code})"
 fi
 
+# 앱 전체 오류 응답(/error)에도 내부 정보가 없다. JSON이 아닌 본문으로 로그인하면 컨트롤러 밖에서 거절돼 /error로 간다.
+error_code=$(curl -s -o /tmp/error.json -w '%{http_code}' -X POST http://localhost:3000/api/auth/login \
+  -H 'Content-Type: text/plain' -H 'X-Requested-With: XMLHttpRequest' -d 'x' || true)
+case "$error_code" in 4??) ;; *) fail "잘못된 형식의 요청에 4xx가 아니다(응답 코드: ${error_code})" ;; esac
+grep -qiE 'trace|exception' /tmp/error.json && fail "오류 응답(/error)에 내부 정보가 있다"
+
 # 가짜 메일함은 화면(8025)만 이 컴퓨터에 열고, 메일 받는 포트(1025)는 열지 않는다(R1-01).
 curl -fsS -o /dev/null http://localhost:8025/ || fail "가짜 메일함 화면이 열리지 않는다"
 timeout 3 bash -c '</dev/tcp/127.0.0.1/1025' 2>/dev/null && fail "메일 받는 포트가 밖에 열려 있다"

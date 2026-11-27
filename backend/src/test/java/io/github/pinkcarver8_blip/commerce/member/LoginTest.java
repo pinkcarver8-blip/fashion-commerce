@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
@@ -108,6 +112,40 @@ class LoginTest extends AuthTestSupport {
         // 15분이 지나 열쇠가 사라진 상황.
         redis.delete(key);
         login(EMAIL, PASSWORD, "10.0.0.1").andExpect(status().isOk());
+    }
+
+    @Test
+    void R1_01_L3_동시에_보낸_틀린_시도도_5번까지만_비교한다() throws Exception {
+        registerMember(EMAIL, PASSWORD);
+        ExecutorService pool = Executors.newFixedThreadPool(10);
+        try {
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<Integer>> calls = new ArrayList<>();
+            for (int i = 0; i < 20; i++) {
+                int n = i;
+                calls.add(
+                        pool.submit(
+                                () -> {
+                                    start.await();
+                                    return login(EMAIL, "wrong password " + n, "10.0.0.9")
+                                            .andReturn()
+                                            .getResponse()
+                                            .getStatus();
+                                }));
+            }
+            start.countDown();
+            List<Integer> statuses = new ArrayList<>();
+            for (Future<Integer> call : calls) {
+                statuses.add(call.get());
+            }
+
+            // 비교 전에 칸을 차지하므로, 한꺼번에 20개를 보내도 비밀번호 비교(401)는 5번뿐이다.
+            assertThat(statuses.stream().filter(code -> code == 401).count()).isEqualTo(5);
+            assertThat(statuses.stream().filter(code -> code == 429).count()).isEqualTo(15);
+        } finally {
+            pool.shutdownNow();
+        }
+        login(EMAIL, PASSWORD, "10.0.0.9").andExpect(status().isTooManyRequests());
     }
 
     @Test

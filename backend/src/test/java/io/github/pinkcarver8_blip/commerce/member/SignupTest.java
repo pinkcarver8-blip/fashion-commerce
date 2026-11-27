@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -157,6 +158,27 @@ class SignupTest extends AuthTestSupport {
                                 Integer.class,
                                 "park@example.com"))
                 .isZero();
+    }
+
+    @Test
+    void R1_01_G5_이미_회원인_이메일과_새_이메일은_응답_시간으로_구별되지_않는다() throws Exception {
+        registerMember("timing@example.com", PASSWORD);
+        List<Long> existing = new ArrayList<>();
+        List<Long> fresh = new ArrayList<>();
+
+        for (int i = 0; i < 5; i++) {
+            long start = System.nanoTime();
+            requestSignup("timing@example.com", "another long pw " + i)
+                    .andExpect(status().isAccepted());
+            existing.add(System.nanoTime() - start);
+            start = System.nanoTime();
+            requestSignup("fresh" + i + "@example.com", "another long pw " + i)
+                    .andExpect(status().isAccepted());
+            fresh.add(System.nanoTime() - start);
+        }
+
+        // 두 경우 모두 bcrypt 계산을 한다. 회원 쪽에서 계산을 건너뛰면 몇 ms로 끝나 절반에 못 미친다.
+        assertThat(median(existing)).isGreaterThan(median(fresh) / 2);
     }
 
     @Test
@@ -312,5 +334,10 @@ class SignupTest extends AuthTestSupport {
                 .filter(value -> value instanceof String)
                 .map(String.class::cast)
                 .toList();
+    }
+
+    private static long median(List<Long> values) {
+        List<Long> sorted = values.stream().sorted().toList();
+        return sorted.get(sorted.size() / 2);
     }
 }

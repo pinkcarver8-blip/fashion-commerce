@@ -60,11 +60,12 @@ public abstract class AuthTestSupport {
     /** 시험 전용 값이다. 운영 키가 아니다(A5-10). */
     static final String REDIS_TEST_PASSWORD = "redis-test-only";
 
-    /** 시험 전용 서명 키(32바이트). 저장소에 비밀값을 두지 않으려고 실행 때 만든다. */
+    /** 시험 전용 서명 키(64바이트: HS512 시험에도 쓰려고). 저장소에 비밀값을 두지 않으려고 실행 때 만든다. */
     public static final String STORE_TEST_KEY =
             Base64.getEncoder()
                     .encodeToString(
-                            "test-only-store-key-not-a-secret!".getBytes(StandardCharsets.UTF_8));
+                            "test-only-store-key-not-a-secret-64-bytes-for-hs512-checks!!!!!!"
+                                    .getBytes(StandardCharsets.UTF_8));
 
     /** web 컨테이너의 고정 내부 주소(infra/docker-compose.yml). 시험의 요청(127.0.0.1)은 이 주소가 아니라 믿지 않는다. */
     static final String TRUSTED_PROXY = "172.29.250.10/32";

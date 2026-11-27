@@ -15,11 +15,24 @@ import org.springframework.stereotype.Component;
 @Component
 class RedisCounters {
 
-    /** ARGV[1] 만료(ms), ARGV[2] "1"이면 올릴 때마다 만료를 새로 건다(마지막 실패부터 센다). */
+    /** ARGV[1] 만료(ms). 처음 올릴 때만 만료를 건다(그때부터 센다). */
     private static final RedisScript<Long> INCREMENT =
             new DefaultRedisScript<>(
                     "local c = redis.call('INCR', KEYS[1]) "
-                            + "if c == 1 or ARGV[2] == '1' then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end "
+                            + "if c == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end "
+                            + "return c",
+                    Long.class);
+
+    /**
+     * ARGV[1] 만료(ms), ARGV[2] 한도. 이미 한도에 닿았으면 올리지 않고 -1. 아니면 올리고 만료를 새로 건다. 읽기와 올리기가 한 번에 일어나, 동시에
+     * 온 요청들이 모두 "아직 0번"을 읽고 통과하는 일이 없다.
+     */
+    private static final RedisScript<Long> RESERVE =
+            new DefaultRedisScript<>(
+                    "local c = tonumber(redis.call('GET', KEYS[1]) or '0') "
+                            + "if c >= tonumber(ARGV[2]) then return -1 end "
+                            + "c = redis.call('INCR', KEYS[1]) "
+                            + "redis.call('PEXPIRE', KEYS[1], ARGV[1]) "
                             + "return c",
                     Long.class);
 
@@ -31,33 +44,28 @@ class RedisCounters {
 
     /** 처음 올린 때부터 {@code window} 동안 센다. */
     long incrementInWindow(String key, Duration window) {
-        return run(key, window, false);
-    }
-
-    /** 마지막으로 올린 때부터 {@code ttl}이 지나면 사라진다. */
-    long incrementSliding(String key, Duration ttl) {
-        return run(key, ttl, true);
-    }
-
-    long current(String key) {
-        String value = redis.opsForValue().get(key);
-        return value == null ? 0 : Long.parseLong(value);
-    }
-
-    void delete(String key) {
-        redis.delete(key);
-    }
-
-    private long run(String key, Duration ttl, boolean refresh) {
-        Long count =
-                redis.execute(
-                        INCREMENT,
-                        List.of(key),
-                        String.valueOf(ttl.toMillis()),
-                        refresh ? "1" : "0");
+        Long count = redis.execute(INCREMENT, List.of(key), String.valueOf(window.toMillis()));
         if (count == null) {
             throw new IllegalStateException("Redis 카운터 응답이 없다");
         }
         return count;
+    }
+
+    /** 한도 안이면 한 칸을 차지하고 true, 이미 한도면 false. 차지한 칸은 {@code ttl} 뒤 사라진다(마지막으로 차지한 때부터). */
+    boolean reserve(String key, long limit, Duration ttl) {
+        Long count =
+                redis.execute(
+                        RESERVE,
+                        List.of(key),
+                        String.valueOf(ttl.toMillis()),
+                        String.valueOf(limit));
+        if (count == null) {
+            throw new IllegalStateException("Redis 카운터 응답이 없다");
+        }
+        return count >= 0;
+    }
+
+    void delete(String key) {
+        redis.delete(key);
     }
 }

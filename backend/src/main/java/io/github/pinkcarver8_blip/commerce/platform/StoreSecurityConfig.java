@@ -79,6 +79,11 @@ public class StoreSecurityConfig {
 
     @Bean
     SecurityFilterChain storeSecurityFilterChain(HttpSecurity http) throws Exception {
+        // CSRF 토큰을 쓰지 않는 이유(ADR-008 결정 2·3): 다른 API의 토큰은 브라우저가 자동으로 붙이지 않는 요청 머리(Authorization)로
+        // 온다.
+        // 쿠키를 쓰는 곳은 /api/auth뿐이고, 그 쿠키는 SameSite=Strict, 그 주소들은 X-Requested-With 헤더와 JSON 본문을
+        // 요구하며 CORS는 열지 않는다. CodeQL java/spring-disabled-csrf-protection 경고는 이 이유로 닫는다(R1-01 최종
+        // 보고).
         http.csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)

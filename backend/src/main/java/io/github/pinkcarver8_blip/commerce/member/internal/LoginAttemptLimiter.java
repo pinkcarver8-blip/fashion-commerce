@@ -31,12 +31,16 @@ class LoginAttemptLimiter {
         this.counters = counters;
     }
 
-    boolean isBlocked(String rawEmail, String ip) {
-        return counters.current(pairKey(rawEmail, ip)) >= MAX_FAILURES;
+    /**
+     * 비밀번호를 비교하기 전에 시도 한 칸을 먼저 차지한다. 이미 5칸이면 false(막힘). 비교 뒤에 세면, 같은 순간에 보낸 시도 50개가 모두 "아직 0번"을 보고
+     * 통과한다(2026-11-28 독립 검토). 성공하면 {@link #reset}이 칸을 비운다. 그래서 남는 칸은 실패한 시도뿐이다.
+     */
+    boolean tryStart(String rawEmail, String ip) {
+        return counters.reserve(pairKey(rawEmail, ip), MAX_FAILURES, BLOCK);
     }
 
-    void recordFailure(String rawEmail, String ip) {
-        counters.incrementSliding(pairKey(rawEmail, ip), BLOCK);
+    /** 실패는 {@link #tryStart}에서 이미 셌다. 여기서는 계정별 경고만 센다. */
+    void recordFailure(String rawEmail) {
         long accountFailures = counters.incrementInWindow(accountKey(rawEmail), ACCOUNT_WINDOW);
         if (accountFailures == ACCOUNT_WARNING_THRESHOLD) {
             // 이메일 대신 해시 앞 12자만 남긴다(A5-10 로그 마스킹).

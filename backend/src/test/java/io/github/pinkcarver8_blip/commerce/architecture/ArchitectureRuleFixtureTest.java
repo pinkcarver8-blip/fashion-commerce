@@ -352,6 +352,17 @@ class ArchitectureRuleFixtureTest {
         assertViolation("s13", rule, "platform 밖에서 주체를 만든다", "PrincipalFromHeader.fromHeader");
         List<String> details = evaluate("s13", rule).getFailureReport().getDetails();
         assertThat(details).noneMatch(line -> line.contains("TokenConverter"));
+        // 생성자 참조(CustomerPrincipal::new)도 잡는다.
+        assertViolation("s13", rule, "platform 밖에서 주체를 만든다", "PrincipalByReference");
+    }
+
+    @Test
+    void R1_01_컨트롤러가_주체를_표시_없이_받으면_실패한다() {
+        Function<CommerceArchitectureRules, ArchRule> rule =
+                CommerceArchitectureRules::principalParametersUseAuthenticationPrincipal;
+        assertViolation("s13", rule, "@AuthenticationPrincipal이 없다", "MeController.forgotten");
+        List<String> details = evaluate("s13", rule).getFailureReport().getDetails();
+        assertThat(details).noneMatch(line -> line.contains("MeController.annotated"));
     }
 
     private static EvaluationResult evaluate(

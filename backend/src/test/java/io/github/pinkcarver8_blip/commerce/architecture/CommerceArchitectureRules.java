@@ -156,7 +156,8 @@ final class CommerceArchitectureRules {
                 sharedModulesStayMinimal(),
                 sharedModulesMatchAllowlist(),
                 onlyPlatformConfiguresSecurity(),
-                onlyPlatformCreatesPrincipals());
+                onlyPlatformCreatesPrincipals(),
+                principalParametersUseAuthenticationPrincipal());
     }
 
     /** 시나리오 1·3: 목록(ADR-001)에 있는 방향으로, 상대 모듈의 공개 API({@code <모듈>.api})만 쓴다. */
@@ -793,7 +794,12 @@ final class CommerceArchitectureRules {
                                     if (moduleOf(origin).filter(PLATFORM::equals).isPresent()) {
                                         return;
                                     }
-                                    for (var call : origin.getConstructorCallsFromSelf()) {
+                                    // 생성자 호출(new …)과 생성자 참조(CustomerPrincipal::new)를 모두 본다(독립 검토
+                                    // 지적).
+                                    List<JavaAccess<?>> creations = new ArrayList<>();
+                                    creations.addAll(origin.getConstructorCallsFromSelf());
+                                    creations.addAll(origin.getConstructorReferencesFromSelf());
+                                    for (JavaAccess<?> call : creations) {
                                         JavaClass owner = call.getTargetOwner();
                                         boolean principal =
                                                 moduleOf(owner)
@@ -807,6 +813,48 @@ final class CommerceArchitectureRules {
                                                             call,
                                                             "platform 밖에서 주체를 만든다: "
                                                                     + call.getDescription()));
+                                        }
+                                    }
+                                }));
+    }
+
+    private static final String AUTHENTICATION_PRINCIPAL =
+            "org.springframework.security.core.annotation.AuthenticationPrincipal";
+
+    /**
+     * 시나리오 15(R1-01, 공유 보안 설정 막는 장치 2번): 컨트롤러가 주체를 매개변수로 받으면 {@code @AuthenticationPrincipal}을 단다.
+     * 빠뜨리면 Spring MVC가 요청 값({@code ?memberId=…})으로 주체를 채워, 남의 회원 번호로 행세할 수 있다(독립 검토 지적, S2·S12).
+     */
+    ArchRule principalParametersUseAuthenticationPrincipal() {
+        return classes()
+                .should(
+                        condition(
+                                "컨트롤러의 주체 매개변수는 @AuthenticationPrincipal로만 받는다",
+                                (type, events) -> {
+                                    if (!hasAnnotation(type, CONTROLLER)) {
+                                        return;
+                                    }
+                                    for (JavaMethod method : type.getMethods()) {
+                                        for (JavaParameter parameter : method.getParameters()) {
+                                            JavaClass parameterType = parameter.getRawType();
+                                            boolean principal =
+                                                    moduleOf(parameterType)
+                                                                    .filter("identity"::equals)
+                                                                    .isPresent()
+                                                            && parameterType
+                                                                    .getSimpleName()
+                                                                    .endsWith("Principal");
+                                            if (principal
+                                                    && !parameter.isAnnotatedWith(
+                                                            AUTHENTICATION_PRINCIPAL)
+                                                    && !parameter.isMetaAnnotatedWith(
+                                                            AUTHENTICATION_PRINCIPAL)) {
+                                                events.add(
+                                                        SimpleConditionEvent.violated(
+                                                                method,
+                                                                "주체 매개변수에 @AuthenticationPrincipal이 없다: "
+                                                                        + method.getFullName()));
+                                            }
                                         }
                                     }
                                 }));
