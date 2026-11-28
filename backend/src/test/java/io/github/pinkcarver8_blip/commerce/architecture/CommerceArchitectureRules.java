@@ -154,7 +154,10 @@ final class CommerceArchitectureRules {
                 orderStatusWrittenOnlyByOrder(),
                 noLombokEqualsHashCodeToStringOnEntities(),
                 sharedModulesStayMinimal(),
-                sharedModulesMatchAllowlist());
+                sharedModulesMatchAllowlist(),
+                onlyPlatformConfiguresSecurity(),
+                onlyPlatformCreatesPrincipals(),
+                principalParametersUseAuthenticationPrincipal());
     }
 
     /** 시나리오 1·3: 목록(ADR-001)에 있는 방향으로, 상대 모듈의 공개 API({@code <모듈>.api})만 쓴다. */
@@ -735,6 +738,126 @@ final class CommerceArchitectureRules {
                                                                                 + entry)));
                             }
                         });
+    }
+
+    /** 보안 필터 체인을 만드는 Spring 타입. platform 밖에서 쓰면 모듈마다 따로 길을 여는 뒷문이 된다. */
+    private static final Set<String> SECURITY_CONFIG_TYPES =
+            Set.of(
+                    "org.springframework.security.config.annotation.web.builders.HttpSecurity",
+                    "org.springframework.security.web.SecurityFilterChain",
+                    "org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer");
+
+    /**
+     * 시나리오 13(R1-01, 공유 보안 설정 막는 장치 4번): 보안 설정(필터 체인, {@code HttpSecurity})은 platform에서만 만든다. 공개
+     * 경로는 platform의 목록 한 곳에서만 연다(.claude/rules/shared-modules.md).
+     */
+    ArchRule onlyPlatformConfiguresSecurity() {
+        return classes()
+                .should(
+                        condition(
+                                "보안 설정(필터 체인)은 platform에서만 만든다",
+                                (origin, events) -> {
+                                    if (!inRoot(origin)
+                                            || moduleOf(origin)
+                                                    .filter(PLATFORM::equals)
+                                                    .isPresent()) {
+                                        return;
+                                    }
+                                    for (Dependency dependency :
+                                            origin.getDirectDependenciesFromSelf()) {
+                                        String target =
+                                                dependency
+                                                        .getTargetClass()
+                                                        .getBaseComponentType()
+                                                        .getName();
+                                        if (SECURITY_CONFIG_TYPES.contains(target)) {
+                                            events.add(
+                                                    SimpleConditionEvent.violated(
+                                                            dependency,
+                                                            "platform 밖에서 보안 설정을 만든다: "
+                                                                    + dependency.getDescription()));
+                                        }
+                                    }
+                                }));
+    }
+
+    /**
+     * 시나리오 14(R1-01, 공유 보안 설정 막는 장치 2번): 로그인한 사람 정보(identity의 주체)는 platform의 토큰 변환기만 만든다. 업무 모듈이 요청
+     * 값으로 주체를 만들면 남의 회원 ID로 행세할 수 있다(S2, S12).
+     */
+    ArchRule onlyPlatformCreatesPrincipals() {
+        return classes()
+                .should(
+                        condition(
+                                "identity의 주체는 platform에서만 만든다",
+                                (origin, events) -> {
+                                    if (moduleOf(origin).filter(PLATFORM::equals).isPresent()) {
+                                        return;
+                                    }
+                                    // 생성자 호출(new …)과 생성자 참조(CustomerPrincipal::new)를 모두 본다(독립 검토
+                                    // 지적).
+                                    List<JavaAccess<?>> creations = new ArrayList<>();
+                                    creations.addAll(origin.getConstructorCallsFromSelf());
+                                    creations.addAll(origin.getConstructorReferencesFromSelf());
+                                    for (JavaAccess<?> call : creations) {
+                                        JavaClass owner = call.getTargetOwner();
+                                        boolean principal =
+                                                moduleOf(owner)
+                                                                .filter("identity"::equals)
+                                                                .isPresent()
+                                                        && owner.getSimpleName()
+                                                                .endsWith("Principal");
+                                        if (principal && !owner.equals(origin)) {
+                                            events.add(
+                                                    SimpleConditionEvent.violated(
+                                                            call,
+                                                            "platform 밖에서 주체를 만든다: "
+                                                                    + call.getDescription()));
+                                        }
+                                    }
+                                }));
+    }
+
+    private static final String AUTHENTICATION_PRINCIPAL =
+            "org.springframework.security.core.annotation.AuthenticationPrincipal";
+
+    /**
+     * 시나리오 15(R1-01, 공유 보안 설정 막는 장치 2번): 컨트롤러가 주체를 매개변수로 받으면 {@code @AuthenticationPrincipal}을 단다.
+     * 빠뜨리면 Spring MVC가 요청 값({@code ?memberId=…})으로 주체를 채워, 남의 회원 번호로 행세할 수 있다(독립 검토 지적, S2·S12).
+     */
+    ArchRule principalParametersUseAuthenticationPrincipal() {
+        return classes()
+                .should(
+                        condition(
+                                "컨트롤러의 주체 매개변수는 @AuthenticationPrincipal로만 받는다",
+                                (type, events) -> {
+                                    if (!hasAnnotation(type, CONTROLLER)) {
+                                        return;
+                                    }
+                                    for (JavaMethod method : type.getMethods()) {
+                                        for (JavaParameter parameter : method.getParameters()) {
+                                            JavaClass parameterType = parameter.getRawType();
+                                            boolean principal =
+                                                    moduleOf(parameterType)
+                                                                    .filter("identity"::equals)
+                                                                    .isPresent()
+                                                            && parameterType
+                                                                    .getSimpleName()
+                                                                    .endsWith("Principal");
+                                            if (principal
+                                                    && !parameter.isAnnotatedWith(
+                                                            AUTHENTICATION_PRINCIPAL)
+                                                    && !parameter.isMetaAnnotatedWith(
+                                                            AUTHENTICATION_PRINCIPAL)) {
+                                                events.add(
+                                                        SimpleConditionEvent.violated(
+                                                                method,
+                                                                "주체 매개변수에 @AuthenticationPrincipal이 없다: "
+                                                                        + method.getFullName()));
+                                            }
+                                        }
+                                    }
+                                }));
     }
 
     /** 한 클래스가 허용 목록에 차지하는 항목들. 공유 모듈 밖이면 없다. */

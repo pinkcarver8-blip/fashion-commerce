@@ -336,6 +336,35 @@ class ArchitectureRuleFixtureTest {
         assertViolation("s10", rule, "엔티티에 Lombok이 만든 메서드가 있다", "Order.hashCode()");
     }
 
+    @Test
+    void R1_01_platform_밖에서_보안_설정을_만들면_실패한다() {
+        assertViolation(
+                "s13",
+                CommerceArchitectureRules::onlyPlatformConfiguresSecurity,
+                "platform 밖에서 보안 설정을 만든다",
+                "SneakySecurityConfig");
+    }
+
+    @Test
+    void R1_01_platform_밖에서_주체를_만들면_실패하고_platform은_통과한다() {
+        Function<CommerceArchitectureRules, ArchRule> rule =
+                CommerceArchitectureRules::onlyPlatformCreatesPrincipals;
+        assertViolation("s13", rule, "platform 밖에서 주체를 만든다", "PrincipalFromHeader.fromHeader");
+        List<String> details = evaluate("s13", rule).getFailureReport().getDetails();
+        assertThat(details).noneMatch(line -> line.contains("TokenConverter"));
+        // 생성자 참조(CustomerPrincipal::new)도 잡는다.
+        assertViolation("s13", rule, "platform 밖에서 주체를 만든다", "PrincipalByReference");
+    }
+
+    @Test
+    void R1_01_컨트롤러가_주체를_표시_없이_받으면_실패한다() {
+        Function<CommerceArchitectureRules, ArchRule> rule =
+                CommerceArchitectureRules::principalParametersUseAuthenticationPrincipal;
+        assertViolation("s13", rule, "@AuthenticationPrincipal이 없다", "MeController.forgotten");
+        List<String> details = evaluate("s13", rule).getFailureReport().getDetails();
+        assertThat(details).noneMatch(line -> line.contains("MeController.annotated"));
+    }
+
     private static EvaluationResult evaluate(
             String scenario, Function<CommerceArchitectureRules, ArchRule> ruleOf) {
         String root = FIXTURE + "." + scenario;

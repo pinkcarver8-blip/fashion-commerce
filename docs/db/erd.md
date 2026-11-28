@@ -58,6 +58,7 @@ erDiagram
 
     %% member, admin
     member ||--o{ member_refresh_token : ""
+    member_signup }o..|| member : "인증 뒤 회원이 됨(같은 email)"
     admin_account ||--o{ admin_refresh_token : ""
     admin_account ||--o{ admin_audit_log : ""
 ```
@@ -113,8 +114,9 @@ erDiagram
 ### member (ADR-008)
 | 테이블 | 칼럼 | 제약·메모 |
 |---|---|---|
-| `member` | id, email, password_hash, name, created_at (초안) | 유니크 `email`. 비밀번호는 Spring Security 위임 인코더 해시 |
-| `member_refresh_token` | id, member_id, family_id, token_hash, expires_at, used_at, revoked_at, created_at (초안) | 토큰 값은 SHA-256 해시만 저장(ADR-008 결정 3). 유니크 `token_hash`. 이미 쓴 토큰이 다시 오면 같은 `family_id`를 모두 폐기 |
+| `member` | id, public_id(UUIDv4, BINARY(16)), email, password_hash, name, created_at (R1-01 구현, V1) | 유니크 `email`(utf8mb4_bin, 앱이 소문자로 맞춘 값), `public_id`. 비밀번호는 Spring Security 위임 인코더 해시(`{bcrypt}`). `public_id`는 토큰의 sub와 고객 주체(`identity.CustomerPrincipal`)에 쓰는 밖에 보이는 회원 ID다. 순차 `id`는 내보내지 않는다(S12). **승인(2026-11-28)**: 다른 모듈의 `member_id` 칸(cart_item·orders 등)은 이 `public_id`를 담는다 |
+| `member_signup` | id, email, password_hash, name, token_hash(BINARY(32)), failed_attempts, expires_at, created_at (R1-01 구현, V1) | 이메일 인증 전 가입 신청(A5-9 S13). 링크 토큰은 SHA-256 해시만, 24시간. 비밀번호 5번 틀리면 못 쓴다. 가입이 끝나면 그 이메일의 신청을 모두 지운다. 만료 행 정리는 `docs/known-issues.md` K18 |
+| `member_refresh_token` | id, member_id, family_id(BINARY(16)), token_hash(BINARY(32)), expires_at, used_at, revoked_at, created_at (R1-01 구현, V1) | 토큰 값은 SHA-256 해시만 저장(ADR-008 결정 3). 유니크 `token_hash`. 이미 쓴 토큰이 다시 오면 같은 `family_id`를 모두 폐기. 만료는 계열 전체가 로그인 후 14일로 같다(회전해도 늘지 않음, 2026-11-28 승인) |
 
 ### admin (ADR-008)
 | 테이블 | 칼럼 | 제약·메모 |

@@ -3,8 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
   "exports": {
     "./store": "./src/store/index.ts",
     "./admin": "./src/admin/index.ts"
+  },
+  "devDependencies": {
+    "jsdom": "31.0.1",
+    "vitest": "5.1.1"
   }
 }

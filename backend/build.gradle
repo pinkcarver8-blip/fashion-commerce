@@ -61,6 +61,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-flyway'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// 인증(R1-01, ADR-008): 보안 필터 체인과 JWT(HS256) 발급·검사, 요청 값 검사, 가입 인증 메일. 모두 Boot 공식 스타터다(A5-12 추가 승인 원칙).
+	// 메일 스타터는 2026-11-28 사용자 결정(이메일 인증, 작업진행.md A5-9 S13).
+	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	runtimeOnly 'org.flywaydb:flyway-mysql'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	// 읽기 조회 전용(ADR-007). 쓰는 곳은 <모듈>.query 패키지뿐이다(ArchUnit).
@@ -80,6 +85,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.testcontainers:testcontainers-mysql'
 	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	// 인증 시험(R1-01): MockMvc와 보안 시험 도구. Redis는 Testcontainers 기본 컨테이너로 띄운다.
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 
 	// 아래는 규칙 위반 예시(src/test/.../archfixture)를 컴파일하는 데만 쓴다.
 	testImplementation 'org.springframework:spring-web'
