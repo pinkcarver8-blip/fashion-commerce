@@ -96,4 +96,4 @@
   - 토큰 발급이 `platform`을 부르지 않는지: 고객 키와 발급·검사 도구는 `platform.StoreSecurityConfig`가 만들고, member 모듈은 Spring의 `JwtEncoder`(이름 `storeJwtEncoder`)만 받는다. 구조 검사(ArchUnit)가 통과한다.
   - 결정 7 "신뢰 프록시": web 컨테이너에 고정 주소(172.29.250.10)를 주고 Tomcat이 그 주소만 믿는다(`server.tomcat.remoteip.internal-proxies`, Tomcat 11.0.27은 CIDR을 받는다). Boot 4.2의 방식 값은 `web-server`다(옛 `native`, `docs/ai/mistakes.md` 2026-11-28). Nginx는 요청자가 보낸 `X-Forwarded-Host` 등 다른 전달 헤더를 지운다. 시험: `TrustedProxyTest`(믿지 않는 곳에서 온 헤더는 무시, 믿는 곳에서 온 헤더는 사용).
   - 강제 칸의 "예정(R1-01)"을 구현했다: 회전·재사용 폐기(`RefreshTokenTest`), 두 탭 차례 갱신(`auth.test.ts`), 로그인 시도 제한(`LoginTest`·`TrustedProxyTest`), 토큰 거절(`StoreTokenRejectionTest`).
-  - **제안(R1-01 최종 보고에서 승인)**: ① 토큰의 sub와 고객 주체에는 순차 PK 대신 회원 외부 ID(UUIDv4)를 쓴다(S12, ADR-010) ② 리프레시 계열의 만료는 로그인 후 14일로 고정하고 회전해도 늘리지 않는다 ③ 인증 API는 모두 `X-Requested-With` 헤더와 JSON 본문을 요구한다(결정 3은 갱신만 요구했다).
+  - **승인(2026-11-28 사용자, R1-01 최종 보고)**: ① 토큰의 sub와 고객 주체에는 순차 PK 대신 회원 외부 ID(UUIDv4)를 쓴다(S12, ADR-010) ② 리프레시 계열의 만료는 로그인 후 14일로 고정하고 회전해도 늘리지 않는다 ③ 인증 API는 모두 `X-Requested-With` 헤더와 JSON 본문을 요구한다(결정 3은 갱신만 요구했다).
